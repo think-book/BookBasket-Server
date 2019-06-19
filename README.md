@@ -1,6 +1,8 @@
 BookBasket-Server
 ===
 
+[![CircleCI](https://circleci.com/gh/think-book/BookBasket-Server.svg?style=svg)](https://circleci.com/gh/think-book/BookBasket-Server)
+
 # Overview
 
 メモリ上にあらかじめ格納された本情報をGETRequestで取得できます。
