@@ -39,9 +39,8 @@ func GetBookInfo() echo.HandlerFunc {
 
 		if id > len(info) || id <= 0 {
 			return c.String(http.StatusNotFound, "Not Found\n")
-		} else {
-			return c.String(http.StatusOK, info[id-1]+"\n")
 		}
+		return c.String(http.StatusOK, info[id-1]+"\n")
 
 	}
 }
