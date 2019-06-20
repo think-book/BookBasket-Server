@@ -1,0 +1,91 @@
+version: 2.1
+
+executors:
+  default:
+    docker:
+      - image: circleci/golang:1.12.6
+        environment:
+          - GO111MODULE: "on"
+          - GOCACHE: "/tmp/go/cache"
+    working_directory: ~/workspace
+
+commands:
+  restore_mod_cache:
+    steps:
+      - restore_cache:
+          name: Restore go modules cache
+          keys:
+            - go-mod-v1-{{ checksum "go.sum" }}
+  save_mod_cache:
+    steps:
+      - save_cache:
+          name: Save go modules cache
+          key: go-mod-v1-{{ checksum "go.sum" }}
+          paths:
+            - /go/pkg/mod
+  restore_build_cache:
+    steps:
+      - restore_cache:
+          name: Restore go build cache
+          keys:
+            - go-build-v1-{{ .Branch }}-{{ .Environment.CIRCLE_PREVIOUS_BUILD_NUM }}
+            - go-build-v1-master-
+  save_build_cache:
+    steps:
+      - save_cache:
+          name: Save go build cache
+          key: go-build-v1-{{ .Branch }}-{{ .Environment.CIRCLE_BUILD_NUM }}
+          paths:
+            - /tmp/go/cache
+
+jobs:
+  mod:
+    executor: default
+    steps:
+      - checkout
+      - restore_mod_cache
+      - run:
+          command: go mod download
+      - save_mod_cache
+  lint:
+    executor: default
+    steps:
+      - checkout
+      - run:
+          command: go get -u golang.org/x/lint/golint
+      - run:
+          command: golint -set_exit_status ./...
+  build:
+    executor: default
+    steps:
+      - checkout
+      - restore_mod_cache
+      - restore_build_cache
+      - run:
+          command: go build -v
+      - save_build_cache
+  test:
+    executor: default
+    steps:
+      - checkout
+      - restore_mod_cache
+      - restore_build_cache
+      - run:
+          command: go test ./... -race
+      # TODO: coverage support
+  # TODO: deploy job
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - mod
+      - lint:
+          requires:
+            - mod
+      - build:
+          requires:
+            - mod
+      - test:
+          requires:
+            - build

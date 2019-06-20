@@ -3,7 +3,7 @@ FROM golang:1.12.6-alpine3.9 AS build
 ENV GO111MODULE on
 RUN apk add --update --no-cache git
 
-WORKDIR /go/src/github.com/think-book/BookBasket-Server
+WORKDIR /workspace
 
 COPY go.mod .
 COPY go.sum .
