@@ -10,9 +10,15 @@ func main() {
 	e := echo.New()
 
 	// ルーティング
-	e.GET("/api/v1/event", handler.GetBookInfoAll())
-	e.GET("/api/v1/event/:id", handler.GetBookInfo())
+	e.GET("/books", handler.GetBookMetaInfoAll)
+	e.GET("/books/:ISBN", handler.GetBookProfile)
+	e.POST("/books", handler.PostMetaInfo)
 
 	// サーバー起動
-	e.Start(":8080") //ポート番号指定してね
+	go func() {
+		if err := e.Start(":8080"); err != nil { //ポート番号指定してね
+			e.Logger.Info("Shutting down the server")
+		}
+	}()
+
 }
