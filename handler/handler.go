@@ -61,11 +61,6 @@ var (
 		tmpProfile1,
 		tmpProfile2,
 	}
-
-	foo = []int{
-		1,
-		2,
-	}
 )
 
 // GetBookMetaInfoAll 本情報全取得
