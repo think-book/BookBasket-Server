@@ -13,12 +13,10 @@ func main() {
 	e.GET("/books", handler.GetBookMetaInfoAll)
 	e.GET("/books/:ISBN", handler.GetBookProfile)
 	e.POST("/books", handler.PostMetaInfo)
+	e.POST("/books/:ISBN", handler.PostBookProfile)
+
+	e.Start(":8080")
 
 	// サーバー起動
-	go func() {
-		if err := e.Start(":8080"); err != nil { //ポート番号指定してね
-			e.Logger.Info("Shutting down the server")
-		}
-	}()
 
 }

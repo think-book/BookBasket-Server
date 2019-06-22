@@ -18,20 +18,25 @@ var (
 	// GETProfile用確認データ
 	bookProfileTestData = `{"ISBN":100,"title":"cool book","story":"A super hero beats monsters."}`
 
-	// POST送信用データ
-	postData1 = `{"title":"epic book","ISBN":300}`
+	// POST送信用メタデータ
+	postMetaData = `{"title":"epic book","ISBN":300}`
 
-	// POST送信用データ
-	postData2 = `{"title":"boring book","ISBN":400}`
+	// POST送信用詳細データ
+	postProfileData = `{"ISBN":300,"title":"epic book","story":"funny"}`
+
+	// POST送信用詳細データ(メタデータなし)
+	postProfileDataMissingMeta = `{"ISBN":500, "title":"normal book", "story":"sad"}`
 
 	// POST送信完了確認データ
-	postReturnData = `{"id":3,"title":"epic book","ISBN":300}`
+	postReturnMetaData = `{"id":3,"title":"epic book","ISBN":300}`
 
 	// POST送信完了確認データ(メタ情報)
 	metaDataAfterPost = `{"id":1,"title":"cool book","ISBN":100},
 {"id":2,"title":"awesome book","ISBN":200},
-{"id":3,"title":"epic book","ISBN":300},
-{"id":4,"title":"boring book","ISBN":400}`
+{"id":3,"title":"epic book","ISBN":300}`
+
+	// POST送信完了確認データ(詳細情報)
+	profileDataAfterPost = `{"ISBN":300, "title":"epic book", "story":"funny"}`
 
 	// ダメなPOST
 	invalidPostData = `{"foo":"bar"}`
@@ -41,6 +46,12 @@ var (
 
 	// エラーメッセージ
 	badRequest = `Invalid Post Format`
+
+	// エラーメッセージ
+	metaNotFound = `Book Meta Data Not Found`
+
+	// エラーメッセージ
+	inconsistentISBN = `ISBN is inconsistent`
 )
 
 func TestGetAll(t *testing.T) {
@@ -92,10 +103,10 @@ func TestGetProfileWithInvalidISBN(t *testing.T) {
 	}
 }
 
-func TestPost(t *testing.T) {
+func TestPostMetaData(t *testing.T) {
 	// Setup
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(postData1))
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(postMetaData))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -104,23 +115,16 @@ func TestPost(t *testing.T) {
 	// Assertions
 	if assert.NoError(t, PostMetaInfo(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, postReturnData, rec.Body.String())
+		assert.Equal(t, postReturnMetaData, rec.Body.String())
 	}
 }
 
-func TestAfterPost(t *testing.T) {
+func TestAfterPostMetaData(t *testing.T) {
 	// Setup
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", strings.NewReader(postData2))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books")
-	PostMetaInfo(c)
-
-	req = httptest.NewRequest(http.MethodGet, "/", nil)
-	rec = httptest.NewRecorder()
-	c = e.NewContext(req, rec)
 	c.SetPath("/books")
 
 	// Assertions
@@ -130,7 +134,7 @@ func TestAfterPost(t *testing.T) {
 	}
 }
 
-func TestPostWithInvalidArgument(t *testing.T) {
+func TestPostMetaDataWithInvalidArgument(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(badRequest))
@@ -143,5 +147,94 @@ func TestPostWithInvalidArgument(t *testing.T) {
 	if assert.NoError(t, PostMetaInfo(c)) {
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 		assert.Equal(t, badRequest, rec.Body.String())
+	}
+}
+
+func TestPostProfileData(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(postProfileData))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("300")
+
+	// Assertions
+	if assert.NoError(t, PostBookProfile(c)) {
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, postProfileData, rec.Body.String())
+	}
+}
+
+func TestAfterPostProfileData(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("300")
+
+	// Assertions
+	if assert.NoError(t, GetBookProfile(c)) {
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, postProfileData, rec.Body.String())
+	}
+}
+
+func TestPostProfileDataWithInvalidArgument(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(badRequest))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("300")
+
+	// Assertions
+	if assert.NoError(t, PostBookProfile(c)) {
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, badRequest, rec.Body.String())
+	}
+}
+
+func TestPostProfileDataWithMissingISBN(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(postProfileDataMissingMeta))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("500")
+
+	// Assertions
+	if assert.NoError(t, PostBookProfile(c)) {
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+		assert.Equal(t, metaNotFound, rec.Body.String())
+	}
+}
+
+func TestPostProfileDataWithInconsistentISBN(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(postProfileData))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("200")
+
+	// Assertions
+	if assert.NoError(t, PostBookProfile(c)) {
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, inconsistentISBN, rec.Body.String())
 	}
 }

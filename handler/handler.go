@@ -90,7 +90,7 @@ func GetBookMetaInfoAll(c echo.Context) error { //c をいじって Request, Res
 
 //GetBookProfile 本情報１件取得
 func GetBookProfile(c echo.Context) error {
-	// urlのid取得
+	// urlのisbn取得
 	isbn, _ := strconv.Atoi(c.Param("ISBN"))
 
 	for _, b := range bookProfileDataBase {
@@ -106,10 +106,11 @@ func GetBookProfile(c echo.Context) error {
 
 }
 
-// PostMetaInfo Post用メソッド
+// PostMetaInfo メタ情報Post用メソッド
 func PostMetaInfo(c echo.Context) error {
 	meta := new(metaInfo)
 
+	// request bodyをmetaInfo構造体にバインド
 	if err := c.Bind(meta); err != nil {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
@@ -125,4 +126,39 @@ func PostMetaInfo(c echo.Context) error {
 	metaInfoDataBase = append(metaInfoDataBase, *meta)
 
 	return c.String(http.StatusOK, message)
+}
+
+// PostBookProfile 詳細情報Post用メソッド
+func PostBookProfile(c echo.Context) error {
+	// urlのisbn取得
+	isbn, _ := strconv.Atoi(c.Param("ISBN"))
+
+	profile := new(bookProfile)
+
+	// request bodyをbookProfile構造体にバインド
+	if err := c.Bind(profile); err != nil {
+		return c.String(http.StatusBadRequest, "Invalid Post Format")
+	}
+
+	// urlとpostデータのISBNが一致していることを確認
+	if isbn != profile.ISBN {
+		return c.String(http.StatusBadRequest, "ISBN is inconsistent")
+	}
+
+	// メタ情報が登録されていることを確認
+	for _, b := range metaInfoDataBase {
+		if isbn == b.ISBN {
+
+			//構造体をjsonのバイナリに変換
+			jsonBinary, _ := json.Marshal(profile)
+
+			message := string(jsonBinary)
+			bookProfileDataBase = append(bookProfileDataBase, *profile)
+
+			return c.String(http.StatusOK, message)
+		}
+	}
+
+	return c.String(http.StatusNotFound, "Book Meta Data Not Found")
+
 }
