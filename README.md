@@ -99,6 +99,6 @@ urlとデータのISBNが不一致の場合、
 `ISBN is inconsistent`  
 が返ります。  
 
-もしJSONがフォーマット通りでない場合、
+もしJSONがフォーマット通りでない場合、  
 `Invalid Post Format`  
 が返ります。
