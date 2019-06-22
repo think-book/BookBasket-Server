@@ -12,7 +12,7 @@ type (
 
 	// 本のメタ情報用構造体
 	metaInfo struct {
-		Id    int    `json:"id"`
+		ID    int    `json:"id"`
 		Title string `json:"title"`
 		ISBN  int    `json:"ISBN"`
 	}
@@ -27,13 +27,13 @@ type (
 
 var (
 	tmpMeta1 = metaInfo{
-		Id:    1,
+		ID:    1,
 		Title: "cool book",
 		ISBN:  100,
 	}
 
 	tmpMeta2 = metaInfo{
-		Id:    2,
+		ID:    2,
 		Title: "awesome book",
 		ISBN:  200,
 	}
@@ -68,7 +68,7 @@ var (
 	}
 )
 
-// GetBookInfoAll 本情報全取得
+// GetBookMetaInfoAll 本情報全取得
 func GetBookMetaInfoAll(c echo.Context) error { //c をいじって Request, Responseを色々する
 
 	// message にinfoを順次ぶち込んでいく
@@ -88,7 +88,7 @@ func GetBookMetaInfoAll(c echo.Context) error { //c をいじって Request, Res
 	return c.String(http.StatusOK, message)
 }
 
-// GetBookInfo 本情報１件取得
+//GetBookProfile 本情報１件取得
 func GetBookProfile(c echo.Context) error {
 	// urlのid取得
 	isbn, _ := strconv.Atoi(c.Param("ISBN"))
@@ -106,6 +106,7 @@ func GetBookProfile(c echo.Context) error {
 
 }
 
+// PostMetaInfo Post用メソッド
 func PostMetaInfo(c echo.Context) error {
 	meta := new(metaInfo)
 
@@ -113,9 +114,9 @@ func PostMetaInfo(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
-	id := metaInfoDataBase[len(metaInfoDataBase)-1].Id + 1
+	id := metaInfoDataBase[len(metaInfoDataBase)-1].ID + 1
 
-	meta.Id = id
+	meta.ID = id
 
 	//構造体をjsonのバイナリに変換
 	jsonBinary, _ := json.Marshal(meta)
