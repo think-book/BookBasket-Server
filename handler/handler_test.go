@@ -32,9 +32,6 @@ var (
 	// POST送信完了確認データ(メタ情報)
 	metaDataAfterPost = `[{"id":1,"title":"cool book","ISBN":100},{"id":2,"title":"awesome book","ISBN":200},{"id":3,"title":"epic book","ISBN":300}]`
 
-	// POST送信完了確認データ(詳細情報)
-	profileDataAfterPost = `{"ISBN":300, "title":"epic book", "story":"funny"}`
-
 	// ダメなPOST
 	invalidPostData = `{"foo":"bar"}`
 
