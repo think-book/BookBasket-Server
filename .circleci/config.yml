@@ -78,8 +78,11 @@ jobs:
       - restore_mod_cache
       - restore_build_cache
       - run:
-          command: go test ./... -race
-      # TODO: coverage support
+          name: Run go tests
+          command: go test ./... -race -coverprofile=coverage.txt -covermode=atomic
+      - run:
+          name: Upload coverage results to Codecov
+          command: bash <(curl -s https://codecov.io/bash)
   # TODO: deploy job
 
 workflows:
