@@ -12,8 +12,7 @@ func main() {
 	// ルーティング
 	e.GET("/books", handler.GetBookMetaInfoAll)
 	e.GET("/books/:ISBN", handler.GetBookProfile)
-	e.POST("/books", handler.PostMetaInfo)
-	e.POST("/books/:ISBN", handler.PostBookProfile)
+	e.POST("/books", handler.PostBookInfo)
 
 	e.Start(":8080")
 
