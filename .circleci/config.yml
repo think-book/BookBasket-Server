@@ -43,6 +43,9 @@ jobs:
     executor: default
     steps:
       - checkout
+      - run:
+          name: Go version
+          command: go version
       - restore_mod_cache
       - run:
           command: go mod download
