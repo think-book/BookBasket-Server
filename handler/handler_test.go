@@ -95,6 +95,23 @@ func TestGetProfile(t *testing.T) {
 	}
 }
 
+func TestGetProfileWithStringISBN(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("foo")
+
+	// Assertions
+	if assert.NoError(t, GetBookProfile(c)) {
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidISBN, rec.Body.String())
+	}
+}
+
 func TestGetProfileWithInvalidISBN(t *testing.T) {
 	// Setup
 	e := echo.New()

@@ -86,7 +86,11 @@ func GetBookMetaInfoAll(c echo.Context) error { //c をいじって Request, Res
 //GetBookProfile 本情報１件取得
 func GetBookProfile(c echo.Context) error {
 	// urlのisbn取得
-	isbn, _ := strconv.Atoi(c.Param("ISBN"))
+	isbn, err := strconv.Atoi(c.Param("ISBN"))
+	if err != nil {
+		// ISBNがintでなければBadRequestを返す
+		return c.String(http.StatusBadRequest, "ISBN must be an integer")
+	}
 
 	for _, b := range bookProfileDataBase {
 		if isbn == b.ISBN {
