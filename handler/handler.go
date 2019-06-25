@@ -67,7 +67,7 @@ var (
 func GetBookMetaInfoAll(c echo.Context) error { //c をいじって Request, Responseを色々する
 
 	// message にinfoを順次ぶち込んでいく
-	message := ""
+	message := "["
 
 	for i, m := range metaInfoDataBase {
 		//構造体をjsonのバイナリに変換
@@ -76,9 +76,11 @@ func GetBookMetaInfoAll(c echo.Context) error { //c をいじって Request, Res
 		message += string(jsonBinary)
 
 		if i != len(metaInfoDataBase)-1 {
-			message += ",\n"
+			message += ","
 		}
 	}
+
+	message += "]"
 
 	return c.String(http.StatusOK, message)
 }
