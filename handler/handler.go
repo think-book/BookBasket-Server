@@ -110,6 +110,18 @@ func PostMetaInfo(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
+	// ポストメッセージのフォーマットが不正
+	if meta.Title == "" || meta.ISBN == 0 {
+		return c.String(http.StatusBadRequest, "Invalid Post Format")
+	}
+
+	// メタ情報が既に登録ずみならBad request
+	for _, m := range metaInfoDataBase {
+		if meta.ISBN == m.ISBN {
+			return c.String(http.StatusBadRequest, "Meta info already exists")
+		}
+	}
+
 	id := metaInfoDataBase[len(metaInfoDataBase)-1].ID + 1
 
 	meta.ID = id
@@ -126,7 +138,11 @@ func PostMetaInfo(c echo.Context) error {
 // PostBookProfile 詳細情報Post用メソッド
 func PostBookProfile(c echo.Context) error {
 	// urlのisbn取得
-	isbn, _ := strconv.Atoi(c.Param("ISBN"))
+	isbn, err := strconv.Atoi(c.Param("ISBN"))
+	if err != nil {
+		// ISBNがintでなければBadRequestを返す
+		return c.String(http.StatusBadRequest, "ISBN must be an integer")
+	}
 
 	profile := new(bookProfile)
 
@@ -135,9 +151,21 @@ func PostBookProfile(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
+	// ポストメッセージのフォーマットが不正
+	if profile.Title == "" || profile.Story == "" {
+		return c.String(http.StatusBadRequest, "Invalid Post Format")
+	}
+
 	// urlとpostデータのISBNが一致していることを確認
 	if isbn != profile.ISBN {
 		return c.String(http.StatusBadRequest, "ISBN is inconsistent")
+	}
+
+	// 詳細情報が既に登録ずみならBad request
+	for _, p := range bookProfileDataBase {
+		if profile.ISBN == p.ISBN {
+			return c.String(http.StatusBadRequest, "Book profile already exists")
+		}
 	}
 
 	// メタ情報が登録されていることを確認

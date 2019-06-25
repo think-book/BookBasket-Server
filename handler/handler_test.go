@@ -45,7 +45,16 @@ var (
 	notFound = `Not Found`
 
 	// エラーメッセージ
-	badRequest = `Invalid Post Format`
+	invalidFormat = `Invalid Post Format`
+
+	// エラーメッセージ
+	invalidISBN = `ISBN must be an integer`
+
+	// エラーメッセージ
+	metaExists = `Meta info already exists`
+
+	// エラーメッセージ
+	profileExists = `Book profile already exists`
 
 	// エラーメッセージ
 	metaNotFound = `Book Meta Data Not Found`
@@ -134,10 +143,10 @@ func TestAfterPostMetaData(t *testing.T) {
 	}
 }
 
-func TestPostMetaDataWithInvalidArgument(t *testing.T) {
+func TestPostMetaDataMultipleTimes(t *testing.T) {
 	// Setup
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(badRequest))
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(postMetaData))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -146,7 +155,23 @@ func TestPostMetaDataWithInvalidArgument(t *testing.T) {
 	// Assertions
 	if assert.NoError(t, PostMetaInfo(c)) {
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		assert.Equal(t, badRequest, rec.Body.String())
+		assert.Equal(t, metaExists, rec.Body.String())
+	}
+}
+
+func TestPostMetaDataWithInvalidArgument(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(invalidPostData))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books")
+
+	// Assertions
+	if assert.NoError(t, PostMetaInfo(c)) {
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidFormat, rec.Body.String())
 	}
 }
 
@@ -185,10 +210,10 @@ func TestAfterPostProfileData(t *testing.T) {
 	}
 }
 
-func TestPostProfileDataWithInvalidArgument(t *testing.T) {
+func TestPostProfileDataMultipleTimes(t *testing.T) {
 	// Setup
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(badRequest))
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(postProfileData))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -199,7 +224,43 @@ func TestPostProfileDataWithInvalidArgument(t *testing.T) {
 	// Assertions
 	if assert.NoError(t, PostBookProfile(c)) {
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		assert.Equal(t, badRequest, rec.Body.String())
+		assert.Equal(t, profileExists, rec.Body.String())
+	}
+}
+
+func TestPostProfileDataWithInvalidArgument(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(invalidPostData))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("300")
+
+	// Assertions
+	if assert.NoError(t, PostBookProfile(c)) {
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidFormat, rec.Body.String())
+	}
+}
+
+func TestPostProfileDataWithInvalidISBN(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(postProfileData))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("baz")
+
+	// Assertions
+	if assert.NoError(t, PostBookProfile(c)) {
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidISBN, rec.Body.String())
 	}
 }
 
