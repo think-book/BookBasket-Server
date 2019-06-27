@@ -14,8 +14,6 @@ func main() {
 	e.GET("/books/:ISBN", handler.GetBookProfile)
 	e.POST("/books", handler.PostBookInfo)
 
-	e.Start(":8080")
-
 	// サーバー起動
-
+	e.Logger.Fatal(e.Start(":8080"))
 }
