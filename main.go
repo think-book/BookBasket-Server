@@ -12,6 +12,8 @@ func main() {
 	// ルーティング
 	e.GET("/books", handler.GetBookMetaInfoAll)
 	e.GET("/books/:ISBN", handler.GetBookProfile)
+	e.GET("/books/:ISBN/forum", handler.GetForumTitles)
+	e.GET("/forum/:forumID", handler.GetForumMessages)
 	e.POST("/books", handler.PostMetaInfo)
 	e.POST("/books/:ISBN", handler.PostBookProfile)
 
