@@ -34,6 +34,9 @@ var (
 	// ダメなPOST
 	invalidPostData = `{"foo":"bar"}`
 
+	// やる気のないPOST
+	badPostData = `hello world`
+
 	// JSON ヘッダ
 	jsonHeader = `application/json; charset=UTF-8`
 
@@ -184,6 +187,24 @@ func TestPostDataWithInvalidArgument(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(invalidPostData))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books")
+
+	// Assertions
+	if assert.NoError(t, PostBookInfo(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidFormat, rec.Body.String())
+	}
+}
+
+func TestPostDataWithBadArgument(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(badPostData))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
