@@ -17,6 +17,16 @@ var (
 	// GETProfile用確認データ
 	bookProfileTestData = `{"ISBN":100,"title":"cool book","story":"A super hero beats monsters."}`
 
+	// GETForumTitles用確認データ
+	forumTitlesTestData = `[{"id":1,"user":"user_X","title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"user":"user_Y","title":"there is an awful typo on p.55","ISBN":100}]
+`
+	// 空配列確認データ
+	emptyData = `[]
+`
+	// GETForumMessages用確認データ
+	forumMessagesTestData = `[{"id":1,"user":"user_A","message":"Me neither.","forumID":1},{"id":2,"user":"user_B","message":"I think the author tries to say ...","forumID":1}]
+`
+
 	// POST送信用メタデータ
 	postMetaData = `{"title":"epic book","ISBN":300}`
 
@@ -45,6 +55,9 @@ var (
 	invalidISBN = `ISBN must be an integer`
 
 	// エラーメッセージ
+	invalidforumID = `forumID must be an integer`
+
+	// エラーメッセージ
 	metaExists = `Meta info already exists`
 
 	// エラーメッセージ
@@ -55,6 +68,12 @@ var (
 
 	// エラーメッセージ
 	inconsistentISBN = `ISBN is inconsistent`
+
+	// JSON ヘッダ
+	jsonHeader = `application/json; charset=UTF-8`
+
+	// プレーンテキストヘッダ
+	plainTextHeader = `text/plain; charset=UTF-8`
 )
 
 func TestGetAll(t *testing.T) {
@@ -308,5 +327,157 @@ func TestPostProfileDataWithInconsistentISBN(t *testing.T) {
 	if assert.NoError(t, PostBookProfile(c)) {
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 		assert.Equal(t, inconsistentISBN, rec.Body.String())
+	}
+}
+
+func TestGetForumTitles(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/forum")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("100")
+
+	// Assertions
+	if assert.NoError(t, GetForumTitles(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, forumTitlesTestData, rec.Body.String())
+	}
+}
+
+func TestGetEmptyForumTitles(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/forum")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("200")
+
+	// Assertions
+	if assert.NoError(t, GetForumTitles(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, emptyData, rec.Body.String())
+	}
+}
+
+func TestGetForumTitlesWithInvalidISBN(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/forum")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("foo")
+
+	// Assertions
+	if assert.NoError(t, GetForumTitles(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidISBN, rec.Body.String())
+	}
+}
+
+func TestGetForumTitlesMissingBookData(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/forum")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("500")
+
+	// Assertions
+	if assert.NoError(t, GetForumTitles(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+		assert.Equal(t, notFound, rec.Body.String())
+	}
+}
+
+func TestGetForumMessages(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/forum/:forumID")
+	c.SetParamNames("forumID")
+	c.SetParamValues("1")
+
+	// Assertions
+	if assert.NoError(t, GetForumMessages(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, forumMessagesTestData, rec.Body.String())
+	}
+}
+
+func TestGetEmptyForumMessages(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/forum/:forumID")
+	c.SetParamNames("forumID")
+	c.SetParamValues("2")
+
+	// Assertions
+	if assert.NoError(t, GetForumMessages(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, emptyData, rec.Body.String())
+	}
+}
+
+func TestGetForumMessagesWithInvalidForumID(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/forum/:forumID")
+	c.SetParamNames("forumID")
+	c.SetParamValues("foo")
+
+	// Assertions
+	if assert.NoError(t, GetForumMessages(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidforumID, rec.Body.String())
+	}
+}
+
+func TestGetForumMessagesMissingForumTitle(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/forum/:forumID")
+	c.SetParamNames("forumID")
+	c.SetParamValues("5")
+
+	// Assertions
+	if assert.NoError(t, GetForumMessages(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+		assert.Equal(t, notFound, rec.Body.String())
 	}
 }

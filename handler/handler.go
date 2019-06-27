@@ -23,6 +23,22 @@ type (
 		Title string `json:"title"`
 		Story string `json:"story"`
 	}
+
+	// フォーラムメタ情報
+	forumMetaInfo struct {
+		ID    int    `json:"id"`
+		User  string `json:"user"`
+		Title string `json:"title"`
+		ISBN  int    `json:"ISBN"`
+	}
+
+	// フォーラム発言情報
+	forumMessages struct {
+		ID      int    `json:"id"`
+		User    string `json:"user"`
+		Message string `json:"message"`
+		ForumID int    `json:"forumID"`
+	}
 )
 
 var (
@@ -60,6 +76,47 @@ var (
 	bookProfileDataBase = []bookProfile{
 		tmpProfile1,
 		tmpProfile2,
+	}
+
+	bookDataBase = metaInfoDataBase
+
+	tmpForumMeta1 = forumMetaInfo{
+		ID:    1,
+		User:  "user_X",
+		Title: "I don't understand p.32 at all.",
+		ISBN:  100,
+	}
+
+	tmpForumMeta2 = forumMetaInfo{
+		ID:    2,
+		User:  "user_Y",
+		Title: "there is an awful typo on p.55",
+		ISBN:  100,
+	}
+
+	// フォーラムのメタ情報格納用配列　（そのうちデータベースに移行）
+	forumMetaInfoDataBase = []forumMetaInfo{
+		tmpForumMeta1,
+		tmpForumMeta2,
+	}
+
+	tmpforumMessage1 = forumMessages{
+		ID:      1,
+		User:    "user_A",
+		Message: "Me neither.",
+		ForumID: 1,
+	}
+
+	tmpforumMessage2 = forumMessages{
+		ID:      2,
+		User:    "user_B",
+		Message: "I think the author tries to say ...",
+		ForumID: 1,
+	}
+
+	forumMessagesDataBase = []forumMessages{
+		tmpforumMessage1,
+		tmpforumMessage2,
 	}
 )
 
@@ -190,4 +247,59 @@ func PostBookProfile(c echo.Context) error {
 
 	return c.String(http.StatusNotFound, "Book Meta Data Not Found")
 
+}
+
+// GetForumTitles 本の詳細ページに表示するために使う、フォーラムのタイトル取得用メソッド
+func GetForumTitles(c echo.Context) error {
+
+	// urlのisbn取得
+	isbn, err := strconv.Atoi(c.Param("ISBN"))
+	if err != nil {
+		// ISBNがintでなければBadRequestを返す
+		return c.String(http.StatusBadRequest, "ISBN must be an integer")
+	}
+
+	// 本データベースに該当のISBNの本が登録されているか確認
+	for _, b := range bookDataBase {
+		if isbn == b.ISBN {
+			message := []forumMetaInfo{}
+
+			// 該当のISBNに対応するフォーラムタイトルを検索
+			for _, f := range forumMetaInfoDataBase {
+				if b.ISBN == f.ISBN {
+					message = append(message, f)
+				}
+			}
+			return c.JSON(http.StatusOK, message)
+		}
+	}
+	return c.String(http.StatusNotFound, "Not Found")
+}
+
+
+// GetForumMessages 本の詳細ページに表示するために使う、フォーラムのタイトル取得用メソッド
+func GetForumMessages(c echo.Context) error {
+
+	// urlのisbn取得
+	forumID, err := strconv.Atoi(c.Param("forumID"))
+	if err != nil {
+		// ISBNがintでなければBadRequestを返す
+		return c.String(http.StatusBadRequest, "forumID must be an integer")
+	}
+
+	// フォーラムメタ情報データベースに該当のforumIDをもつものが登録されているか確認
+	for _, f := range forumMetaInfoDataBase {
+		if forumID == f.ID {
+			message := []forumMessages{}
+			// 該当のforumIDに対応するメッセージを検索
+			for _, m := range forumMessagesDataBase {
+				if forumID == m.ForumID {
+					message = append(message, m)
+				}	
+			}
+					
+			return c.JSON(http.StatusOK, message)
+		}
+	}
+	return c.String(http.StatusNotFound, "Not Found")
 }
