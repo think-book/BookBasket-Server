@@ -70,9 +70,6 @@ var (
 	invalidISBN = `ISBN must be an integer`
 
 	// エラーメッセージ
-	inconsistentISBN = `ISBN is inconsistent`
-
-	// エラーメッセージ
 	dataExists = `Book info already exists`
 )
 
