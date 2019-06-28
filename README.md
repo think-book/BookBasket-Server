@@ -30,8 +30,8 @@ ISBN:100の本に対するフォーラムのタイトルリスト
 {"id":2,"user":"user_Y","title":"there is an awful typo on p.55","ISBN":100}
 ```
 
-#### メタ情報
-forumID:1のフォーラムタイトル（上のメタ情報のid = 1のもの）に対するフォーラムのメッセージリスト
+#### 発言情報
+forumID:1のフォーラムタイトル（上のメタ情報のid = 1のもの）に対するフォーラムの発言リスト
 ```
 {"id":1,"user":"user_A","message":"Me neither.","forumID":1},
 {"id":2,"user":"user_B","message":"I think the author tries to say ...","forumID":1}
