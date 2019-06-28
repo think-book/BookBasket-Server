@@ -8,22 +8,33 @@ BookBasket-Server
 
 メモリ上にあらかじめ格納された本情報をGETRequestで取得できます。
 POSTも実装しました。
+フォーラム情報のGETもできるようになりました。
 
 
 # Description
 
 メモリ上に以下のデータがあるので、これをGETRequestで取得できます。
 
-### メタデータ
+### 本のデータ
 ```
-{"id": 1, "title": "cool book", "ISBN": 100},
-{"id": 2, "title": "awesome book", "ISBN": 200}
+{"id": 1, "title": "cool book", "description": "A super hero beats monsters.", "ISBN": 100},
+{"id": 2, "title": "awesome book", "description": "A text book of go langage.", "ISBN": 200}
 ```
 
-### 本の詳細データ
+### フォーラムのデータ
+
+#### メタ情報
+ISBN:100の本に対するフォーラムのタイトルリスト
 ```
-{"ISBN": 100, "title": "cool book", "story": "A super hero beats monsters."},
-{"ISBN": 200, "title": "awesome book", "story": "A text book of go langage."}
+{"id":1,"user":"user_X","title":"I don't understand p.32 at all.","ISBN":100},
+{"id":2,"user":"user_Y","title":"there is an awful typo on p.55","ISBN":100}
+```
+
+#### メタ情報
+forumID:1のフォーラムタイトル（上のメタ情報のid = 1のもの）に対するフォーラムのメッセージリスト
+```
+{"id":1,"user":"user_A","message":"Me neither.","forumID":1},
+{"id":2,"user":"user_B","message":"I think the author tries to say ...","forumID":1}
 ```
 
 # Requirement
@@ -45,19 +56,13 @@ $ docker-compose up --build
 
 
 ## POSTフォーマット
-メタ情報が、
-`{"title": "~", "ISBN": xxx}`
-
-詳細情報が、
-`{"ISBN": xxx, "title": "~", "story": "~"}`
+`{"title":"~","ISBN":xxx,"description":"~"}`
 
 で登録できます。
 
-先に対応するISBNを持つメタ情報が登録されていないと、詳細情報は登録できません。
-
 # Example
 
-## GET リクエスト
+## GET リクエスト(本情報)
 サーバ立ち上げ後、
 `$ curl {ホストのIPアドレス}:8080/books`
 で
@@ -74,7 +79,7 @@ ISBNでの取得は、
 例えば、
 `$ curl {ホストのIPアドレス}:8080/books/100`
 でISBN = 100の本の詳細、
-`{"ISBN": 100, "title": "cool book", "story": "A super hero beats monsters."}`
+`{"ISBN": 100, "title": "cool book", "description": "A super hero beats monsters."}`
 が取得できる。
 
 `$ curl {ホストのIPアドレス}:8080/books/300`
@@ -82,24 +87,29 @@ ISBNでの取得は、
 `Not Found`
 が返ります。
 
+## GET リクエスト(フォーラム情報)
+あるISBNの本のフォーラムタイトルのリストを取得する場合、
+`$ curl {ホストのIPアドレス}:8080/books/:ISBN/forum`
+で取得できる。
+
+あるフォーラムタイトルに対する発言リストを取得する場合、
+`$ curl {ホストのIPアドレス}:8080/forum/:forumID`
+で取得できる。
+
+いずれも、対応するISBNもしくはforumIDが存在しなかった場合は、
+`Not Found`
+が返ります。
+
 ## POSTリクエスト
 
-POSTリクエストは、メタ情報が、
-`$ curl -X POST -H "Content-Type: application/json" -d '{"ISBN":, ...}' {ホストのIPアドレス}:8080/books`
+POSTリクエストは、
+`$ curl -X POST -H "Content-Type: application/json" -d '{"title":"~", ...}' {ホストのIPアドレス}:8080/books`
 で行えます。
-
-詳細情報が、
-`$ curl -X POST -H "Content-Type: application/json" -d '{"ISBN":, ...}' {ホストのIPアドレス}:8080/books/:ISBN`
-で行えます。
-
-対応するISBNのメタ情報が未登録の場合、
-`Book Meta Data Not Found`
-が返ります。
-
-urlとデータのISBNが不一致の場合、
-`ISBN is inconsistent`
-が返ります。
 
 もしJSONがフォーマット通りでない場合、
 `Invalid Post Format`
+が返ります。
+
+もし詳細情報がすでに存在している場合、
+`Book info already exists`
 が返ります。
