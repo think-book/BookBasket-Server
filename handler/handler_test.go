@@ -26,7 +26,7 @@ var (
 	emptyData = `[]
 `
 	// GETForumMessages用確認データ
-	forumMessagesTestData = `[{"id":1,"userID":10,"message":"Me neither.","forumID":1},{"id":2,"userID":11,"message":"I think the author tries to say ...","forumID":1}]
+	forumMessagesTestData = `[{"id":1,"userID":11,"message":"Me neither.","forumID":1},{"id":2,"userID":12,"message":"I think the author tries to say ...","forumID":1}]
 `
 
 	// POST送信用データ
