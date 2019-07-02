@@ -19,6 +19,16 @@ var (
 	bookProfileTestData = `{"ISBN":100,"title":"cool book","description":"A super hero beats monsters."}
 `
 
+	// GETThreadTitles用確認データ
+	threadTitlesTestData = `[{"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100}]
+`
+	// 空配列確認データ
+	emptyData = `[]
+`
+	// GETThreadMessages用確認データ
+	threadMessagesTestData = `[{"id":1,"userID":11,"message":"Me neither.","threadID":1},{"id":2,"userID":12,"message":"I think the author tries to say ...","threadID":1}]
+`
+
 	// POST送信用データ
 	postData = `{"title":"epic book","ISBN":300,"description":"funny"}
 `
@@ -29,6 +39,10 @@ var (
 
 	// POST送信完了確認データ(メタ情報)
 	metaDataAfterPost = `[{"id":1,"title":"cool book","ISBN":100},{"id":2,"title":"awesome book","ISBN":200},{"id":3,"title":"epic book","ISBN":300}]
+`
+
+	// POST送信完了確認データ(詳細情報)
+	profileDataAfterPost = `{"ISBN":300,"title":"epic book","description":"funny"}
 `
 
 	// ダメなPOST
@@ -42,6 +56,9 @@ var (
 
 	// プレーンテキストヘッダ
 	plainTextHeader = `text/plain; charset=UTF-8`
+
+	// エラーメッセージ
+	invalidThreadID = `threadID must be an integer`
 
 	// エラーメッセージ
 	notFound = `Not Found`
@@ -165,6 +182,26 @@ func TestAfterPostMetaData(t *testing.T) {
 	}
 }
 
+func TestAfterPostProfileData(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books")
+	c.SetPath("/books/:ISBN")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("300")
+
+	// Assertions
+	if assert.NoError(t, GetBookProfile(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, profileDataAfterPost, rec.Body.String())
+	}
+}
+
 func TestPostDataMultipleTimes(t *testing.T) {
 	// Setup
 	e := echo.New()
@@ -216,5 +253,157 @@ func TestPostDataWithBadArgument(t *testing.T) {
 		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 		assert.Equal(t, invalidFormat, rec.Body.String())
+	}
+}
+
+func TestGetThreadTitles(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/threads")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("100")
+
+	// Assertions
+	if assert.NoError(t, GetThreadTitles(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, threadTitlesTestData, rec.Body.String())
+	}
+}
+
+func TestGetEmptyThreadsTitles(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/threads")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("200")
+
+	// Assertions
+	if assert.NoError(t, GetThreadTitles(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, emptyData, rec.Body.String())
+	}
+}
+
+func TestGetThreadTitlesWithInvalidISBN(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/threads")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("foo")
+
+	// Assertions
+	if assert.NoError(t, GetThreadTitles(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidISBN, rec.Body.String())
+	}
+}
+
+func TestGetThreadTitlesMissingBookData(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/threads")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("500")
+
+	// Assertions
+	if assert.NoError(t, GetThreadTitles(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+		assert.Equal(t, notFound, rec.Body.String())
+	}
+}
+
+func TestGetThreadMessages(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/threads/:threadID")
+	c.SetParamNames("threadID")
+	c.SetParamValues("1")
+
+	// Assertions
+	if assert.NoError(t, GetThreadMessages(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, threadMessagesTestData, rec.Body.String())
+	}
+}
+
+func TestGetEmptyThreadMessages(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/threads/:threadID")
+	c.SetParamNames("threadID")
+	c.SetParamValues("2")
+
+	// Assertions
+	if assert.NoError(t, GetThreadMessages(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, emptyData, rec.Body.String())
+	}
+}
+
+func TestGetThreadMessagesWithInvalidThreadID(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/thread/:threadID")
+	c.SetParamNames("threadID")
+	c.SetParamValues("foo")
+
+	// Assertions
+	if assert.NoError(t, GetThreadMessages(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidThreadID, rec.Body.String())
+	}
+}
+
+func TestGetThreadMessagesMissingThreadTitle(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/threads/:threadID")
+	c.SetParamNames("threadID")
+	c.SetParamValues("5")
+
+	// Assertions
+	if assert.NoError(t, GetThreadMessages(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+		assert.Equal(t, notFound, rec.Body.String())
 	}
 }
