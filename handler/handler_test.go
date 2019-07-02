@@ -20,13 +20,13 @@ var (
 `
 
 	// GETForumTitles用確認データ
-	forumTitlesTestData = `[{"id":1,"user":"user_X","title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"user":"user_Y","title":"there is an awful typo on p.55","ISBN":100}]
+	forumTitlesTestData = `[{"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100}]
 `
 	// 空配列確認データ
 	emptyData = `[]
 `
 	// GETForumMessages用確認データ
-	forumMessagesTestData = `[{"id":1,"user":"user_A","message":"Me neither.","forumID":1},{"id":2,"user":"user_B","message":"I think the author tries to say ...","forumID":1}]
+	forumMessagesTestData = `[{"id":1,"userID":10,"message":"Me neither.","forumID":1},{"id":2,"userID":11,"message":"I think the author tries to say ...","forumID":1}]
 `
 
 	// POST送信用データ
