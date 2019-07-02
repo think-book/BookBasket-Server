@@ -11,11 +11,11 @@ import (
 )
 
 var (
-	// GETAll用確認データ
+	// GetBookMetaInfoAll用確認データ
 	metaInfoTestData = `[{"id":1,"title":"cool book","ISBN":100},{"id":2,"title":"awesome book","ISBN":200}]
 `
 
-	// GETProfile用確認データ
+	// GetBookProfile用確認データ
 	bookProfileTestData = `{"ISBN":100,"title":"cool book","description":"A super hero beats monsters."}
 `
 
@@ -29,12 +29,17 @@ var (
 	threadMessagesTestData = `[{"id":1,"userID":11,"message":"Me neither.","threadID":1},{"id":2,"userID":12,"message":"I think the author tries to say ...","threadID":1}]
 `
 
-	// POST送信用データ
-	postData = `{"title":"epic book","ISBN":300,"description":"funny"}
-`
+	// POST送信用本情報
+	bookInfoForPost = `{"title":"epic book","ISBN":300,"description":"funny"}`
 
-	// POST送信完了確認データ
-	postReturnData = `{"id":3,"title":"epic book","description":"funny","ISBN":300}
+	// POST送信用スレッドタイトル
+	threadTitleForPost = `{"userID":3,"title":"I don't understand ...","ISBN":100}`
+
+	// 本情報POST送信完了確認データ
+	postReturnBookInfo = `{"id":3,"title":"epic book","description":"funny","ISBN":300}
+`
+	// スレッドタイトルPOST送信完了確認データ
+	postReturnThreadTitle = `{"id":3,"userID":3,"title":"I don't understand ...","ISBN":100}
 `
 
 	// POST送信完了確認データ(メタ情報)
@@ -45,8 +50,15 @@ var (
 	profileDataAfterPost = `{"ISBN":300,"title":"epic book","description":"funny"}
 `
 
+	// GETThreadTitles用確認データ
+	threadTitlesAfterPost = `[{"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100},{"id":3,"userID":3,"title":"I don't understand ...","ISBN":100}]
+`
+
 	// ダメなPOST
 	invalidPostData = `{"foo":"bar"}`
+
+	// 惜しいPOST
+	closePostData = `{"title":"epic book","ISBN":"300","description":"funny"}`
 
 	// やる気のないPOST
 	badPostData = `hello world`
@@ -61,6 +73,9 @@ var (
 	invalidThreadID = `threadID must be an integer`
 
 	// エラーメッセージ
+	inconsistentISBN = `Inconsistent ISBN`
+
+	// エラーメッセージ
 	notFound = `Not Found`
 
 	// エラーメッセージ
@@ -70,7 +85,10 @@ var (
 	invalidISBN = `ISBN must be an integer`
 
 	// エラーメッセージ
-	dataExists = `Book info already exists`
+	bookInfoExists = `Book info already exists`
+
+	// エラーメッセージ
+	threadTitleExists = `Thread title already exists`
 )
 
 func TestGetAll(t *testing.T) {
@@ -147,10 +165,10 @@ func TestGetProfileWithInvalidISBN(t *testing.T) {
 	}
 }
 
-func TestPostData(t *testing.T) {
+func TestPostBookInfo(t *testing.T) {
 	// Setup
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(postData))
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(bookInfoForPost))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -161,7 +179,7 @@ func TestPostData(t *testing.T) {
 		res := rec.Result()
 		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, postReturnData, rec.Body.String())
+		assert.Equal(t, postReturnBookInfo, rec.Body.String())
 	}
 }
 
@@ -202,10 +220,10 @@ func TestAfterPostProfileData(t *testing.T) {
 	}
 }
 
-func TestPostDataMultipleTimes(t *testing.T) {
+func TestPostBookInfoMultipleTimes(t *testing.T) {
 	// Setup
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(postData))
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(bookInfoForPost))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -216,11 +234,11 @@ func TestPostDataMultipleTimes(t *testing.T) {
 		res := rec.Result()
 		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		assert.Equal(t, dataExists, rec.Body.String())
+		assert.Equal(t, bookInfoExists, rec.Body.String())
 	}
 }
 
-func TestPostDataWithInvalidArgument(t *testing.T) {
+func TestPostBookInfoWithInvalidArgument(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(invalidPostData))
@@ -238,7 +256,25 @@ func TestPostDataWithInvalidArgument(t *testing.T) {
 	}
 }
 
-func TestPostDataWithBadArgument(t *testing.T) {
+func TestPostBookInfoWithInvalidButCloseArgument(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(closePostData))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books")
+
+	// Assertions
+	if assert.NoError(t, PostBookInfo(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidFormat, rec.Body.String())
+	}
+}
+
+func TestPostBookInfoWithBadArgument(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(badPostData))
@@ -405,5 +441,144 @@ func TestGetThreadMessagesMissingThreadTitle(t *testing.T) {
 		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusNotFound, rec.Code)
 		assert.Equal(t, notFound, rec.Body.String())
+	}
+}
+
+func TestPostThreadTitle(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(threadTitleForPost))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/threads")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("100")
+
+	// Assertions
+	if assert.NoError(t, PostThreadTitle(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, postReturnThreadTitle, rec.Body.String())
+	}
+}
+
+func TestAfterPostThreadTitles(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/threads")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("100")
+
+	// Assertions
+	if assert.NoError(t, GetThreadTitles(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, threadTitlesAfterPost, rec.Body.String())
+	}
+}
+
+func TestPostThreadTitleMultipleTimes(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(threadTitleForPost))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/threads")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("100")
+
+	// Assertions
+	if assert.NoError(t, PostThreadTitle(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, threadTitleExists, rec.Body.String())
+	}
+}
+
+func TestPostThreadTitleWithInvalidArgument(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(invalidPostData))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/threads")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("100")
+
+	// Assertions
+	if assert.NoError(t, PostThreadTitle(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidFormat, rec.Body.String())
+	}
+}
+
+func TestPostDataWithBadArgument(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(badPostData))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/threads")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("100")
+
+	// Assertions
+	if assert.NoError(t, PostThreadTitle(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidFormat, rec.Body.String())
+	}
+}
+
+func TestPostDataWithInconsistentISBN(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(threadTitleForPost))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/threads")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("300")
+
+	// Assertions
+	if assert.NoError(t, PostThreadTitle(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, inconsistentISBN, rec.Body.String())
+	}
+}
+
+func TestPostDataWithInvalidISBN(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(threadTitleForPost))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/books/:ISBN/threads")
+	c.SetParamNames("ISBN")
+	c.SetParamValues("foo")
+
+	// Assertions
+	if assert.NoError(t, PostThreadTitle(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidISBN, rec.Body.String())
 	}
 }
