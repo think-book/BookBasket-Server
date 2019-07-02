@@ -31,7 +31,7 @@ type (
 		Description string `json:"description"`
 	}
 
-	// フォーラムメタ情報
+	// スレッドメタ情報
 	threadMetaInfo struct {
 		ID     int    `json:"id"`
 		UserID int    `json:"userID"`
@@ -39,7 +39,7 @@ type (
 		ISBN   int    `json:"ISBN"`
 	}
 
-	// フォーラム発言情報
+	// スレッド発言情報
 	threadMessages struct {
 		ID       int    `json:"id"`
 		UserID   int    `json:"userID"`
@@ -83,7 +83,7 @@ var (
 		ISBN:   100,
 	}
 
-	// フォーラムのメタ情報格納用配列　（そのうちデータベースに移行）
+	// スレッドのメタ情報格納用配列　（そのうちデータベースに移行）
 	threadMetaInfoDataBase = []threadMetaInfo{
 		tmpThreadMeta1,
 		tmpThreadMeta2,
@@ -103,7 +103,7 @@ var (
 		ThreadID: 1,
 	}
 
-	// フォーラムのメッセージ情報格納用配列　（そのうちデータベースに移行）
+	// スレッドのメッセージ情報格納用配列　（そのうちデータベースに移行）
 	threadMessagesDataBase = []threadMessages{
 		tmpThreadMessage1,
 		tmpThreadMessage2,
@@ -198,7 +198,7 @@ func GetThreadTitles(c echo.Context) error {
 		if isbn == b.ISBN {
 			message := []threadMetaInfo{}
 
-			// 該当のISBNに対応するフォーラムタイトルを検索
+			// 該当のISBNに対応するスレッドタイトルを検索
 			for _, f := range threadMetaInfoDataBase {
 				if b.ISBN == f.ISBN {
 					message = append(message, f)
@@ -220,7 +220,7 @@ func GetThreadMessages(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "threadID must be an integer")
 	}
 
-	// フォーラムメタ情報データベースに該当のthreadIDをもつものが登録されているか確認
+	// スレッドメタ情報データベースに該当のthreadIDをもつものが登録されているか確認
 	for _, f := range threadMetaInfoDataBase {
 		if threadID == f.ID {
 			message := []threadMessages{}
