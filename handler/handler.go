@@ -91,14 +91,14 @@ var (
 
 	tmpforumMessage1 = forumMessages{
 		ID:      1,
-		UserID:  10,
+		UserID:  11,
 		Message: "Me neither.",
 		ForumID: 1,
 	}
 
 	tmpforumMessage2 = forumMessages{
 		ID:      2,
-		UserID:  11,
+		UserID:  12,
 		Message: "I think the author tries to say ...",
 		ForumID: 1,
 	}

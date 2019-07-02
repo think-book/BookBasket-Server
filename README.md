@@ -26,15 +26,15 @@ POSTも実装しました。
 #### メタ情報
 ISBN:100の本に対するフォーラムのタイトルリスト
 ```
-{"id":1,"user":"user_X","title":"I don't understand p.32 at all.","ISBN":100},
-{"id":2,"user":"user_Y","title":"there is an awful typo on p.55","ISBN":100}
+{"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},
+{"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100}
 ```
 
 #### 発言情報
 forumID:1のフォーラムタイトル（上のメタ情報のid = 1のもの）に対するフォーラムの発言リスト
 ```
-{"id":1,"user":"user_A","message":"Me neither.","forumID":1},
-{"id":2,"user":"user_B","message":"I think the author tries to say ...","forumID":1}
+{"id":1,"userID":11,"message":"Me neither.","forumID":1},
+{"id":2,"userID":12,"message":"I think the author tries to say ...","forumID":1}
 ```
 
 # Requirement
