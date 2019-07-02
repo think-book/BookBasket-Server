@@ -214,19 +214,19 @@ func GetThreadTitles(c echo.Context) error {
 func GetThreadMessages(c echo.Context) error {
 
 	// urlのisbn取得
-	forumID, err := strconv.Atoi(c.Param("forumID"))
+	threadID, err := strconv.Atoi(c.Param("threadID"))
 	if err != nil {
 		// ISBNがintでなければBadRequestを返す
-		return c.String(http.StatusBadRequest, "forumID must be an integer")
+		return c.String(http.StatusBadRequest, "threadID must be an integer")
 	}
 
-	// フォーラムメタ情報データベースに該当のforumIDをもつものが登録されているか確認
+	// フォーラムメタ情報データベースに該当のthreadIDをもつものが登録されているか確認
 	for _, f := range threadMetaInfoDataBase {
-		if forumID == f.ID {
+		if threadID == f.ID {
 			message := []threadMessages{}
-			// 該当のforumIDに対応するメッセージを検索
+			// 該当のthreadIDに対応するメッセージを検索
 			for _, m := range threadMessagesDataBase {
-				if forumID == m.ThreadID {
+				if threadID == m.ThreadID {
 					message = append(message, m)
 				}
 			}
