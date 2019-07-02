@@ -69,14 +69,14 @@ var (
 		tmpData2,
 	}
 
-	tmpForumMeta1 = threadMetaInfo{
+	tmpThreadMeta1 = threadMetaInfo{
 		ID:     1,
 		UserID: 1,
 		Title:  "I don't understand p.32 at all.",
 		ISBN:   100,
 	}
 
-	tmpForumMeta2 = threadMetaInfo{
+	tmpThreadMeta2 = threadMetaInfo{
 		ID:     2,
 		UserID: 2,
 		Title:  "there is an awful typo on p.55",
@@ -84,19 +84,19 @@ var (
 	}
 
 	// フォーラムのメタ情報格納用配列　（そのうちデータベースに移行）
-	forumMetaInfoDataBase = []threadMetaInfo{
-		tmpForumMeta1,
-		tmpForumMeta2,
+	threadMetaInfoDataBase = []threadMetaInfo{
+		tmpThreadMeta1,
+		tmpThreadMeta2,
 	}
 
-	tmpforumMessage1 = threadMessages{
+	tmpThreadMessage1 = threadMessages{
 		ID:       1,
 		UserID:   11,
 		Message:  "Me neither.",
 		ThreadID: 1,
 	}
 
-	tmpforumMessage2 = threadMessages{
+	tmpThreadMessage2 = threadMessages{
 		ID:       2,
 		UserID:   12,
 		Message:  "I think the author tries to say ...",
@@ -104,9 +104,9 @@ var (
 	}
 
 	// フォーラムのメッセージ情報格納用配列　（そのうちデータベースに移行）
-	forumMessagesDataBase = []threadMessages{
-		tmpforumMessage1,
-		tmpforumMessage2,
+	threadMessagesDataBase = []threadMessages{
+		tmpThreadMessage1,
+		tmpThreadMessage2,
 	}
 )
 
@@ -199,7 +199,7 @@ func GetThreadTitles(c echo.Context) error {
 			message := []threadMetaInfo{}
 
 			// 該当のISBNに対応するフォーラムタイトルを検索
-			for _, f := range forumMetaInfoDataBase {
+			for _, f := range threadMetaInfoDataBase {
 				if b.ISBN == f.ISBN {
 					message = append(message, f)
 				}
@@ -221,11 +221,11 @@ func GetThreadMessages(c echo.Context) error {
 	}
 
 	// フォーラムメタ情報データベースに該当のforumIDをもつものが登録されているか確認
-	for _, f := range forumMetaInfoDataBase {
+	for _, f := range threadMetaInfoDataBase {
 		if forumID == f.ID {
 			message := []threadMessages{}
 			// 該当のforumIDに対応するメッセージを検索
-			for _, m := range forumMessagesDataBase {
+			for _, m := range threadMessagesDataBase {
 				if forumID == m.ThreadID {
 					message = append(message, m)
 				}
