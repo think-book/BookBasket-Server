@@ -19,13 +19,13 @@ var (
 	bookProfileTestData = `{"ISBN":100,"title":"cool book","description":"A super hero beats monsters."}
 `
 
-	// GETForumTitles用確認データ
+	// GETThreadTitles用確認データ
 	threadTitlesTestData = `[{"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100}]
 `
 	// 空配列確認データ
 	emptyData = `[]
 `
-	// GETForumMessages用確認データ
+	// GETThreadMessages用確認データ
 	threadMessagesTestData = `[{"id":1,"userID":11,"message":"Me neither.","threadID":1},{"id":2,"userID":12,"message":"I think the author tries to say ...","threadID":1}]
 `
 
@@ -58,7 +58,7 @@ var (
 	plainTextHeader = `text/plain; charset=UTF-8`
 
 	// エラーメッセージ
-	invalidforumID = `forumID must be an integer`
+	invalidThreadID = `threadID must be an integer`
 
 	// エラーメッセージ
 	notFound = `Not Found`
@@ -256,13 +256,13 @@ func TestPostDataWithBadArgument(t *testing.T) {
 	}
 }
 
-func TestGetForumTitles(t *testing.T) {
+func TestGetThreadTitles(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books/:ISBN/forum")
+	c.SetPath("/books/:ISBN/threads")
 	c.SetParamNames("ISBN")
 	c.SetParamValues("100")
 
@@ -275,13 +275,13 @@ func TestGetForumTitles(t *testing.T) {
 	}
 }
 
-func TestGetEmptyForumTitles(t *testing.T) {
+func TestGetEmptyThreadsTitles(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books/:ISBN/forum")
+	c.SetPath("/books/:ISBN/threads")
 	c.SetParamNames("ISBN")
 	c.SetParamValues("200")
 
@@ -294,13 +294,13 @@ func TestGetEmptyForumTitles(t *testing.T) {
 	}
 }
 
-func TestGetForumTitlesWithInvalidISBN(t *testing.T) {
+func TestGetThreadTitlesWithInvalidISBN(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books/:ISBN/forum")
+	c.SetPath("/books/:ISBN/threads")
 	c.SetParamNames("ISBN")
 	c.SetParamValues("foo")
 
@@ -313,13 +313,13 @@ func TestGetForumTitlesWithInvalidISBN(t *testing.T) {
 	}
 }
 
-func TestGetForumTitlesMissingBookData(t *testing.T) {
+func TestGetThreadTitlesMissingBookData(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books/:ISBN/forum")
+	c.SetPath("/books/:ISBN/threads")
 	c.SetParamNames("ISBN")
 	c.SetParamValues("500")
 
@@ -332,14 +332,14 @@ func TestGetForumTitlesMissingBookData(t *testing.T) {
 	}
 }
 
-func TestGetForumMessages(t *testing.T) {
+func TestGetThreadMessages(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/forum/:forumID")
-	c.SetParamNames("forumID")
+	c.SetPath("/threads/:threadID")
+	c.SetParamNames("threadID")
 	c.SetParamValues("1")
 
 	// Assertions
@@ -351,14 +351,14 @@ func TestGetForumMessages(t *testing.T) {
 	}
 }
 
-func TestGetEmptyForumMessages(t *testing.T) {
+func TestGetEmptyThreadMessages(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/forum/:forumID")
-	c.SetParamNames("forumID")
+	c.SetPath("/threads/:threadID")
+	c.SetParamNames("threadID")
 	c.SetParamValues("2")
 
 	// Assertions
@@ -370,14 +370,14 @@ func TestGetEmptyForumMessages(t *testing.T) {
 	}
 }
 
-func TestGetForumMessagesWithInvalidForumID(t *testing.T) {
+func TestGetThreadMessagesWithInvalidThreadID(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/forum/:forumID")
-	c.SetParamNames("forumID")
+	c.SetPath("/thread/:threadID")
+	c.SetParamNames("threadID")
 	c.SetParamValues("foo")
 
 	// Assertions
@@ -385,18 +385,18 @@ func TestGetForumMessagesWithInvalidForumID(t *testing.T) {
 		res := rec.Result()
 		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		assert.Equal(t, invalidforumID, rec.Body.String())
+		assert.Equal(t, invalidThreadID, rec.Body.String())
 	}
 }
 
-func TestGetForumMessagesMissingForumTitle(t *testing.T) {
+func TestGetThreadMessagesMissingThreadTitle(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/forum/:forumID")
-	c.SetParamNames("forumID")
+	c.SetPath("/threads/:threadID")
+	c.SetParamNames("threadID")
 	c.SetParamValues("5")
 
 	// Assertions
