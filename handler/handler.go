@@ -30,6 +30,22 @@ type (
 		Title       string `json:"title"`
 		Description string `json:"description"`
 	}
+
+	// スレッドメタ情報
+	threadMetaInfo struct {
+		ID     int    `json:"id"`
+		UserID int    `json:"userID"`
+		Title  string `json:"title"`
+		ISBN   int    `json:"ISBN"`
+	}
+
+	// スレッド発言情報
+	threadMessages struct {
+		ID       int    `json:"id"`
+		UserID   int    `json:"userID"`
+		Message  string `json:"message"`
+		ThreadID int    `json:"threadID"`
+	}
 )
 
 var (
@@ -51,6 +67,46 @@ var (
 	bookDataBase = []bookInfo{
 		tmpData1,
 		tmpData2,
+	}
+
+	tmpThreadMeta1 = threadMetaInfo{
+		ID:     1,
+		UserID: 1,
+		Title:  "I don't understand p.32 at all.",
+		ISBN:   100,
+	}
+
+	tmpThreadMeta2 = threadMetaInfo{
+		ID:     2,
+		UserID: 2,
+		Title:  "there is an awful typo on p.55",
+		ISBN:   100,
+	}
+
+	// スレッドのメタ情報格納用配列　（そのうちデータベースに移行）
+	threadMetaInfoDataBase = []threadMetaInfo{
+		tmpThreadMeta1,
+		tmpThreadMeta2,
+	}
+
+	tmpThreadMessage1 = threadMessages{
+		ID:       1,
+		UserID:   11,
+		Message:  "Me neither.",
+		ThreadID: 1,
+	}
+
+	tmpThreadMessage2 = threadMessages{
+		ID:       2,
+		UserID:   12,
+		Message:  "I think the author tries to say ...",
+		ThreadID: 1,
+	}
+
+	// スレッドのメッセージ情報格納用配列　（そのうちデータベースに移行）
+	threadMessagesDataBase = []threadMessages{
+		tmpThreadMessage1,
+		tmpThreadMessage2,
 	}
 )
 
@@ -125,4 +181,58 @@ func PostBookInfo(c echo.Context) error {
 	bookDataBase = append(bookDataBase, *info)
 
 	return c.JSON(http.StatusOK, info)
+}
+
+// GetThreadTitles 本の詳細ページに表示するために使う、スレッドのタイトル取得用メソッド
+func GetThreadTitles(c echo.Context) error {
+
+	// urlのisbn取得
+	isbn, err := strconv.Atoi(c.Param("ISBN"))
+	if err != nil {
+		// ISBNがintでなければBadRequestを返す
+		return c.String(http.StatusBadRequest, "ISBN must be an integer")
+	}
+
+	// 本データベースに該当のISBNの本が登録されているか確認
+	for _, b := range bookDataBase {
+		if isbn == b.ISBN {
+			message := []threadMetaInfo{}
+
+			// 該当のISBNに対応するスレッドタイトルを検索
+			for _, f := range threadMetaInfoDataBase {
+				if b.ISBN == f.ISBN {
+					message = append(message, f)
+				}
+			}
+			return c.JSON(http.StatusOK, message)
+		}
+	}
+	return c.String(http.StatusNotFound, "Not Found")
+}
+
+// GetThreadMessages 各スレッドのメッセージ取得用メソッド
+func GetThreadMessages(c echo.Context) error {
+
+	// urlのisbn取得
+	threadID, err := strconv.Atoi(c.Param("threadID"))
+	if err != nil {
+		// ISBNがintでなければBadRequestを返す
+		return c.String(http.StatusBadRequest, "threadID must be an integer")
+	}
+
+	// スレッドメタ情報データベースに該当のthreadIDをもつものが登録されているか確認
+	for _, f := range threadMetaInfoDataBase {
+		if threadID == f.ID {
+			message := []threadMessages{}
+			// 該当のthreadIDに対応するメッセージを検索
+			for _, m := range threadMessagesDataBase {
+				if threadID == m.ThreadID {
+					message = append(message, m)
+				}
+			}
+
+			return c.JSON(http.StatusOK, message)
+		}
+	}
+	return c.String(http.StatusNotFound, "Not Found")
 }
