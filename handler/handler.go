@@ -33,16 +33,16 @@ type (
 
 	// フォーラムメタ情報
 	forumMetaInfo struct {
-		ID    int    `json:"id"`
-		User  string `json:"user"`
-		Title string `json:"title"`
-		ISBN  int    `json:"ISBN"`
+		ID     int    `json:"id"`
+		UserID int    `json:"userID"`
+		Title  string `json:"title"`
+		ISBN   int    `json:"ISBN"`
 	}
 
 	// フォーラム発言情報
 	forumMessages struct {
 		ID      int    `json:"id"`
-		User    string `json:"user"`
+		UserID  int    `json:"userID"`
 		Message string `json:"message"`
 		ForumID int    `json:"forumID"`
 	}
@@ -70,17 +70,17 @@ var (
 	}
 
 	tmpForumMeta1 = forumMetaInfo{
-		ID:    1,
-		User:  "user_X",
-		Title: "I don't understand p.32 at all.",
-		ISBN:  100,
+		ID:     1,
+		UserID: 1,
+		Title:  "I don't understand p.32 at all.",
+		ISBN:   100,
 	}
 
 	tmpForumMeta2 = forumMetaInfo{
-		ID:    2,
-		User:  "user_Y",
-		Title: "there is an awful typo on p.55",
-		ISBN:  100,
+		ID:     2,
+		UserID: 2,
+		Title:  "there is an awful typo on p.55",
+		ISBN:   100,
 	}
 
 	// フォーラムのメタ情報格納用配列　（そのうちデータベースに移行）
@@ -91,14 +91,14 @@ var (
 
 	tmpforumMessage1 = forumMessages{
 		ID:      1,
-		User:    "user_A",
+		UserID:  10,
 		Message: "Me neither.",
 		ForumID: 1,
 	}
 
 	tmpforumMessage2 = forumMessages{
 		ID:      2,
-		User:    "user_B",
+		UserID:  11,
 		Message: "I think the author tries to say ...",
 		ForumID: 1,
 	}
