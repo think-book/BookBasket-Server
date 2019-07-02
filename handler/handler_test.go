@@ -20,13 +20,13 @@ var (
 `
 
 	// GETForumTitles用確認データ
-	forumTitlesTestData = `[{"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100}]
+	threadTitlesTestData = `[{"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100}]
 `
 	// 空配列確認データ
 	emptyData = `[]
 `
 	// GETForumMessages用確認データ
-	forumMessagesTestData = `[{"id":1,"userID":11,"message":"Me neither.","forumID":1},{"id":2,"userID":12,"message":"I think the author tries to say ...","forumID":1}]
+	threadMessagesTestData = `[{"id":1,"userID":11,"message":"Me neither.","threadID":1},{"id":2,"userID":12,"message":"I think the author tries to say ...","threadID":1}]
 `
 
 	// POST送信用データ
@@ -267,11 +267,11 @@ func TestGetForumTitles(t *testing.T) {
 	c.SetParamValues("100")
 
 	// Assertions
-	if assert.NoError(t, GetForumTitles(c)) {
+	if assert.NoError(t, GetThreadTitles(c)) {
 		res := rec.Result()
 		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, forumTitlesTestData, rec.Body.String())
+		assert.Equal(t, threadTitlesTestData, rec.Body.String())
 	}
 }
 
@@ -286,7 +286,7 @@ func TestGetEmptyForumTitles(t *testing.T) {
 	c.SetParamValues("200")
 
 	// Assertions
-	if assert.NoError(t, GetForumTitles(c)) {
+	if assert.NoError(t, GetThreadTitles(c)) {
 		res := rec.Result()
 		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusOK, rec.Code)
@@ -305,7 +305,7 @@ func TestGetForumTitlesWithInvalidISBN(t *testing.T) {
 	c.SetParamValues("foo")
 
 	// Assertions
-	if assert.NoError(t, GetForumTitles(c)) {
+	if assert.NoError(t, GetThreadTitles(c)) {
 		res := rec.Result()
 		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
@@ -324,7 +324,7 @@ func TestGetForumTitlesMissingBookData(t *testing.T) {
 	c.SetParamValues("500")
 
 	// Assertions
-	if assert.NoError(t, GetForumTitles(c)) {
+	if assert.NoError(t, GetThreadTitles(c)) {
 		res := rec.Result()
 		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusNotFound, rec.Code)
@@ -343,11 +343,11 @@ func TestGetForumMessages(t *testing.T) {
 	c.SetParamValues("1")
 
 	// Assertions
-	if assert.NoError(t, GetForumMessages(c)) {
+	if assert.NoError(t, GetThreadMessages(c)) {
 		res := rec.Result()
 		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, forumMessagesTestData, rec.Body.String())
+		assert.Equal(t, threadMessagesTestData, rec.Body.String())
 	}
 }
 
@@ -362,7 +362,7 @@ func TestGetEmptyForumMessages(t *testing.T) {
 	c.SetParamValues("2")
 
 	// Assertions
-	if assert.NoError(t, GetForumMessages(c)) {
+	if assert.NoError(t, GetThreadMessages(c)) {
 		res := rec.Result()
 		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusOK, rec.Code)
@@ -381,7 +381,7 @@ func TestGetForumMessagesWithInvalidForumID(t *testing.T) {
 	c.SetParamValues("foo")
 
 	// Assertions
-	if assert.NoError(t, GetForumMessages(c)) {
+	if assert.NoError(t, GetThreadMessages(c)) {
 		res := rec.Result()
 		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
@@ -400,7 +400,7 @@ func TestGetForumMessagesMissingForumTitle(t *testing.T) {
 	c.SetParamValues("5")
 
 	// Assertions
-	if assert.NoError(t, GetForumMessages(c)) {
+	if assert.NoError(t, GetThreadMessages(c)) {
 		res := rec.Result()
 		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusNotFound, rec.Code)
