@@ -183,7 +183,7 @@ func PostBookInfo(c echo.Context) error {
 	return c.JSON(http.StatusOK, info)
 }
 
-// GetForumTitles 本の詳細ページに表示するために使う、フォーラムのタイトル取得用メソッド
+// GetThreadTitles 本の詳細ページに表示するために使う、スレッドのタイトル取得用メソッド
 func GetThreadTitles(c echo.Context) error {
 
 	// urlのisbn取得
@@ -210,7 +210,7 @@ func GetThreadTitles(c echo.Context) error {
 	return c.String(http.StatusNotFound, "Not Found")
 }
 
-// GetForumMessages 本の詳細ページに表示するために使う、フォーラムのタイトル取得用メソッド
+// GetThreadMessages 各スレッドのメッセージ取得用メソッド
 func GetThreadMessages(c echo.Context) error {
 
 	// urlのisbn取得
