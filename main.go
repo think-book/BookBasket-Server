@@ -15,6 +15,7 @@ func main() {
 	e.GET("/books/:ISBN/threads", handler.GetThreadTitles)
 	e.GET("/threads/:threadID", handler.GetThreadMessages)
 	e.POST("/books", handler.PostBookInfo)
+	e.POST("/books/:ISBN/threads", handler.PostThreadTitle)
 
 	// サーバー起動
 	e.Logger.Fatal(e.Start(":8080"))
