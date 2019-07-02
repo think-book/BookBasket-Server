@@ -31,7 +31,7 @@ ISBN:100の本に対するスレッドのタイトルリスト
 ```
 
 #### 発言情報
-forumID:1のスレッドタイトル（上のメタ情報のid = 1のもの）に対するスレッドの発言リスト
+threadID:1のスレッドタイトル（上のメタ情報のid = 1のもの）に対するスレッドの発言リスト
 ```
 {"id":1,"userID":11,"message":"Me neither.","threadID":1},
 {"id":2,"userID":12,"message":"I think the author tries to say ...","threadID":1}
