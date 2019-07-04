@@ -254,14 +254,12 @@ func PostThreadTitle(c echo.Context) error {
 	}
 
 	// ポストメッセージのフォーマットが不正
-	if info.Title == "" || info.ISBN == 0 || info.UserID == 0 {
+	if info.Title == "" || info.UserID == 0 {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
-	// urlとポストデータのISBNが不一致
-	if info.ISBN != isbn {
-		return c.String(http.StatusBadRequest, "Inconsistent ISBN")
-	}
+	// スレッドのISBN設定
+	info.ISBN = isbn
 
 	// スレッドタイトル情報が既に登録ずみならBad request
 	for _, b := range threadMetaInfoDataBase {

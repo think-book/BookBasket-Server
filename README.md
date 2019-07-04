@@ -8,7 +8,7 @@ BookBasket-Server
 
 メモリ上にあらかじめ格納された本情報をGETRequestで取得できます。
 POSTも実装しました。
-フォーラム情報のGETを実装ました。
+フォーラム情報のGETを実装しました。
 スレッドタイトルのPOSTもできるようになりました。
 
 
@@ -62,7 +62,7 @@ $ docker-compose up --build
 `{"title":"~","ISBN":xxx,"description":"~"}`
 
 ### スレッドタイトル
-`{"userID":xxx,"title":"~","ISBN":xxx}`
+`{"userID":xxx,"title":"~"}`
 
 で登録できます。
 
@@ -112,6 +112,10 @@ POSTリクエストは、
 `$ curl -X POST -H "Content-Type: application/json" -d '{"title":"~", ...}' {ホストのIPアドレス}:8080/books`
 で行えます。
 
+登録が成功した場合、
+`{"id":x,"title":"~","description":"~","ISBN":xxx}\n`
+が返ります。
+
 もしJSONがフォーマット通りでない場合、
 `Invalid Post Format`
 が返ります。
@@ -127,12 +131,12 @@ POSTリクエストは、
 `$ curl -X POST -H "Content-Type: application/json" -d '{"userID":xxx, ...}' {ホストのIPアドレス}:8080/books/:ISBN/threads`
 で行えます。
 
-もしJSONがフォーマット通りでない場合、
-`Invalid Post Format`
+登録が成功した場合、
+`{"id":x,"userID":x,"title":"~","ISBN":xxx}\n`
 が返ります。
 
-もしurlとPOSTデータのISBNが一致しない場合、
-`Inconsistent ISBN`
+もしJSONがフォーマット通りでない場合、
+`Invalid Post Format`
 が返ります。
 
 もしスレッドタイトルがすでに存在している場合（同じ本に同名のスレッドがある場合）、

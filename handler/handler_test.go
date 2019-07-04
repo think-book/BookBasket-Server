@@ -33,7 +33,7 @@ var (
 	bookInfoForPost = `{"title":"epic book","ISBN":300,"description":"funny"}`
 
 	// POST送信用スレッドタイトル
-	threadTitleForPost = `{"userID":3,"title":"I don't understand ...","ISBN":100}`
+	threadTitleForPost = `{"userID":3,"title":"I don't understand ..."}`
 
 	// 本情報POST送信完了確認データ
 	postReturnBookInfo = `{"id":3,"title":"epic book","description":"funny","ISBN":300}
@@ -71,9 +71,6 @@ var (
 
 	// エラーメッセージ
 	invalidThreadID = `threadID must be an integer`
-
-	// エラーメッセージ
-	inconsistentISBN = `Inconsistent ISBN`
 
 	// エラーメッセージ
 	notFound = `Not Found`
@@ -540,26 +537,6 @@ func TestPostDataWithBadArgument(t *testing.T) {
 		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 		assert.Equal(t, invalidFormat, rec.Body.String())
-	}
-}
-
-func TestPostDataWithInconsistentISBN(t *testing.T) {
-	// Setup
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(threadTitleForPost))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetPath("/books/:ISBN/threads")
-	c.SetParamNames("ISBN")
-	c.SetParamValues("300")
-
-	// Assertions
-	if assert.NoError(t, PostThreadTitle(c)) {
-		res := rec.Result()
-		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
-		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		assert.Equal(t, inconsistentISBN, rec.Body.String())
 	}
 }
 
