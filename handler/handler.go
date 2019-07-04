@@ -10,7 +10,7 @@ import (
 type (
 
 	// 本情報用構造体（POST用）
-	bookInfo struct {
+	BookInfo struct {
 		ID          int    `json:"id"`
 		Title       string `json:"title"`
 		Description string `json:"description"`
@@ -18,21 +18,21 @@ type (
 	}
 
 	// 本メタ情報用構造体（GET用）
-	bookMetaInfo struct {
+	BookMetaInfo struct {
 		ID    int    `json:"id"`
 		Title string `json:"title"`
 		ISBN  int    `json:"ISBN"`
 	}
 
 	// 本詳細情報用構造体（GET用）
-	bookProfileInfo struct {
+	BookProfileInfo struct {
 		ISBN        int    `json:"ISBN"`
 		Title       string `json:"title"`
 		Description string `json:"description"`
 	}
 
 	// スレッドメタ情報
-	threadMetaInfo struct {
+	ThreadMetaInfo struct {
 		ID     int    `json:"id"`
 		UserID int    `json:"userID"`
 		Title  string `json:"title"`
@@ -40,7 +40,7 @@ type (
 	}
 
 	// スレッド発言情報
-	threadMessages struct {
+	ThreadMessages struct {
 		ID       int    `json:"id"`
 		UserID   int    `json:"userID"`
 		Message  string `json:"message"`
@@ -49,14 +49,14 @@ type (
 )
 
 var (
-	tmpData1 = bookInfo{
+	tmpData1 = BookInfo{
 		ID:          1,
 		Title:       "cool book",
 		Description: "A super hero beats monsters.",
 		ISBN:        100,
 	}
 
-	tmpData2 = bookInfo{
+	tmpData2 = BookInfo{
 		ID:          2,
 		Title:       "awesome book",
 		Description: "A text book of go langage.",
@@ -64,19 +64,19 @@ var (
 	}
 
 	// 本情報格納用配列　（そのうちデータベースに移行）
-	bookDataBase = []bookInfo{
+	bookDataBase = []BookInfo{
 		tmpData1,
 		tmpData2,
 	}
 
-	tmpThreadMeta1 = threadMetaInfo{
+	tmpThreadMeta1 = ThreadMetaInfo{
 		ID:     1,
 		UserID: 1,
 		Title:  "I don't understand p.32 at all.",
 		ISBN:   100,
 	}
 
-	tmpThreadMeta2 = threadMetaInfo{
+	tmpThreadMeta2 = ThreadMetaInfo{
 		ID:     2,
 		UserID: 2,
 		Title:  "there is an awful typo on p.55",
@@ -84,19 +84,19 @@ var (
 	}
 
 	// スレッドのメタ情報格納用配列　（そのうちデータベースに移行）
-	threadMetaInfoDataBase = []threadMetaInfo{
+	threadMetaInfoDataBase = []ThreadMetaInfo{
 		tmpThreadMeta1,
 		tmpThreadMeta2,
 	}
 
-	tmpThreadMessage1 = threadMessages{
+	tmpThreadMessage1 = ThreadMessages{
 		ID:       1,
 		UserID:   11,
 		Message:  "Me neither.",
 		ThreadID: 1,
 	}
 
-	tmpThreadMessage2 = threadMessages{
+	tmpThreadMessage2 = ThreadMessages{
 		ID:       2,
 		UserID:   12,
 		Message:  "I think the author tries to say ...",
@@ -104,7 +104,7 @@ var (
 	}
 
 	// スレッドのメッセージ情報格納用配列　（そのうちデータベースに移行）
-	threadMessagesDataBase = []threadMessages{
+	threadMessagesDataBase = []ThreadMessages{
 		tmpThreadMessage1,
 		tmpThreadMessage2,
 	}
@@ -114,10 +114,10 @@ var (
 func GetBookMetaInfoAll(c echo.Context) error { //c をいじって Request, Responseを色々する
 
 	// message（bookMetaInfo配列） にメタ情報を順次格納していく
-	message := []bookMetaInfo{}
+	message := []BookMetaInfo{}
 
 	for _, m := range bookDataBase {
-		tmp := bookMetaInfo{
+		tmp := BookMetaInfo{
 			ID:    m.ID,
 			Title: m.Title,
 			ISBN:  m.ISBN,
@@ -140,7 +140,7 @@ func GetBookProfile(c echo.Context) error {
 
 	for _, b := range bookDataBase {
 		if isbn == b.ISBN {
-			tmp := bookProfileInfo{
+			tmp := BookProfileInfo{
 				Title:       b.Title,
 				ISBN:        b.ISBN,
 				Description: b.Description,
@@ -153,9 +153,9 @@ func GetBookProfile(c echo.Context) error {
 
 }
 
-// PostBookInfo メタ情報Post用メソッド
+// PostBookInfo 本情報Post用メソッド
 func PostBookInfo(c echo.Context) error {
-	info := new(bookInfo)
+	info := new(BookInfo)
 
 	// request bodyをmetaInfo構造体にバインド
 	if err := c.Bind(info); err != nil {
@@ -196,7 +196,7 @@ func GetThreadTitles(c echo.Context) error {
 	// 本データベースに該当のISBNの本が登録されているか確認
 	for _, b := range bookDataBase {
 		if isbn == b.ISBN {
-			message := []threadMetaInfo{}
+			message := []ThreadMetaInfo{}
 
 			// 該当のISBNに対応するスレッドタイトルを検索
 			for _, f := range threadMetaInfoDataBase {
@@ -223,7 +223,7 @@ func GetThreadMessages(c echo.Context) error {
 	// スレッドメタ情報データベースに該当のthreadIDをもつものが登録されているか確認
 	for _, f := range threadMetaInfoDataBase {
 		if threadID == f.ID {
-			message := []threadMessages{}
+			message := []ThreadMessages{}
 			// 該当のthreadIDに対応するメッセージを検索
 			for _, m := range threadMessagesDataBase {
 				if threadID == m.ThreadID {
@@ -235,4 +235,44 @@ func GetThreadMessages(c echo.Context) error {
 		}
 	}
 	return c.String(http.StatusNotFound, "Not Found")
+}
+
+// PostThreadTitle スレッドタイトルPost用メソッド
+func PostThreadTitle(c echo.Context) error {
+	info := new(ThreadMetaInfo)
+
+	// urlのisbn取得
+	isbn, err := strconv.Atoi(c.Param("ISBN"))
+	if err != nil {
+		// ISBNがintでなければBadRequestを返す
+		return c.String(http.StatusBadRequest, "ISBN must be an integer")
+	}
+
+	// request bodyをThreadMetaInfo構造体にバインド
+	if err := c.Bind(info); err != nil {
+		return c.String(http.StatusBadRequest, "Invalid Post Format")
+	}
+
+	// ポストメッセージのフォーマットが不正
+	if info.Title == "" || info.UserID == 0 {
+		return c.String(http.StatusBadRequest, "Invalid Post Format")
+	}
+
+	// スレッドのISBN設定
+	info.ISBN = isbn
+
+	// スレッドタイトル情報が既に登録ずみならBad request
+	for _, b := range threadMetaInfoDataBase {
+		if info.ISBN == b.ISBN && info.Title == b.Title {
+			return c.String(http.StatusBadRequest, "Thread title already exists")
+		}
+	}
+
+	id := threadMetaInfoDataBase[len(threadMetaInfoDataBase)-1].ID + 1
+
+	info.ID = id
+
+	threadMetaInfoDataBase = append(threadMetaInfoDataBase, *info)
+
+	return c.JSON(http.StatusOK, info)
 }
