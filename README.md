@@ -187,7 +187,3 @@ POSTリクエストは、
 もし指定したuserIDのユーザがデータベースに存在しない場合、
 `User doesn't exist`
 が返ります。
-
-もしスレッドメッセージがすでに存在している場合、
-`Thread message already exists`
-が返ります。
