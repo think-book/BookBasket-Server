@@ -50,7 +50,7 @@ type (
 	// ユーザ情報
 	UserInfo struct {
 		ID       int    `json:"id"`
-		UserName string `json:"username"`
+		UserName string `json:"userName"`
 		Password string `json:"password"`
 	}
 )
@@ -353,7 +353,6 @@ func PostThreadMessage(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "ThreadID must be an integer")
 	}
 
-	
 	// request bodyをThreadMessage構造体にバインド
 	if err := c.Bind(info); err != nil {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
@@ -364,7 +363,6 @@ func PostThreadMessage(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
-	
 	// threadIDがデータベースにあるか確認
 	threadExists := false
 	for _, t := range threadMetaInfoDataBase {
@@ -378,7 +376,6 @@ func PostThreadMessage(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Thread doesn't exist")
 	}
 
-	
 	// userIDがデータベースにあるか確認
 	userExists := false
 	for _, u := range userInfoDataBase {
@@ -395,13 +392,6 @@ func PostThreadMessage(c echo.Context) error {
 	// メッセージのthreadID設定
 	info.ThreadID = threadID
 
-	// スレッドメッセージ情報が既に登録ずみならBad request
-	for _, m := range threadMessagesDataBase {
-		if info.UserID == m.UserID && info.Message == m.Message && info.ThreadID == m.ThreadID {
-			return c.String(http.StatusBadRequest, "Thread message already exists")
-		}
-	}
-
 	id := threadMessagesDataBase[len(threadMessagesDataBase)-1].ID + 1
 
 	info.ID = id
@@ -409,5 +399,5 @@ func PostThreadMessage(c echo.Context) error {
 	threadMessagesDataBase = append(threadMessagesDataBase, *info)
 
 	return c.JSON(http.StatusOK, info)
-	
+
 }
