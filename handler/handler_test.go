@@ -677,26 +677,6 @@ func TestAfterPostThreadMessage(t *testing.T) {
 	}
 }
 
-func TestPostThreadMessageMultipleTimes(t *testing.T) {
-	// Setup
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(threadMessageForPost))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetPath("/threads/:threadID")
-	c.SetParamNames("threadID")
-	c.SetParamValues("1")
-
-	// Assertions
-	if assert.NoError(t, PostThreadMessage(c)) {
-		res := rec.Result()
-		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
-		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		assert.Equal(t, threadMessageExists, rec.Body.String())
-	}
-}
-
 func TestPostThreadMessageWithInvalidArgument(t *testing.T) {
 	// Setup
 	e := echo.New()

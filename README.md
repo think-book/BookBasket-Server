@@ -42,10 +42,10 @@ threadID:1のスレッドタイトル（上のメタ情報のid = 1のもの）�
 ### ユーザのデータ
 
 ```
-{"id":1, "username":"Alice", "password": "pass"},
-{"id":2, "username":"Bob", "password": "word"},
-{"id":11, "username":"Carol", "password": "qwer"},
-{"id":12, "username":"Charlie", "password": "tyui"}
+{"id":1, "userName":"Alice", "password": "pass"},
+{"id":2, "userName":"Bob", "password": "word"},
+{"id":11, "userName":"Carol", "password": "qwer"},
+{"id":12, "userName":"Charlie", "password": "tyui"}
 ```
 
 
