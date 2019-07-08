@@ -114,9 +114,6 @@ var (
 	threadTitleExists = `Thread title already exists`
 
 	// エラーメッセージ
-	threadMessageExists = `Thread message already exists`
-
-	// エラーメッセージ
 	noUser = `User doesn't exist`
 
 	// エラーメッセージ
