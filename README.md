@@ -9,12 +9,13 @@ BookBasket-Server
 メモリ上にあらかじめ格納された本情報をGETRequestで取得できます。
 POSTも実装しました。
 フォーラム情報のGETを実装しました。
-スレッドタイトルのPOSTもできるようになりました。
+スレッドタイトル、スレッドメッセージのPOSTを実装しました。
 
 
 # Description
 
-メモリ上に以下のデータがあるので、これをGETRequestで取得できます。
+メモリ上に以下のデータがあるので、これをGETRequestで取得できます。(ユーザ情報はまだ)
+
 
 ### 本のデータ
 ```
@@ -37,6 +38,16 @@ threadID:1のスレッドタイトル（上のメタ情報のid = 1のもの）�
 {"id":1,"userID":11,"message":"Me neither.","threadID":1},
 {"id":2,"userID":12,"message":"I think the author tries to say ...","threadID":1}
 ```
+
+### ユーザのデータ
+
+```
+{"id":1, "userName":"Alice", "password": "pass"},
+{"id":2, "userName":"Bob", "password": "word"},
+{"id":11, "userName":"Carol", "password": "qwer"},
+{"id":12, "userName":"Charlie", "password": "tyui"}
+```
+
 
 # Requirement
 
@@ -63,6 +74,9 @@ $ docker-compose up --build
 
 ### スレッドタイトル
 `{"userID":xxx,"title":"~"}`
+
+### スレッドメッセージ
+`{"userID":xxx,"message":"~"}`
 
 で登録できます。
 
@@ -139,6 +153,33 @@ POSTリクエストは、
 `Invalid Post Format`
 が返ります。
 
-もしスレッドタイトルがすでに存在している場合（同じ本に同名のスレッドがある場合）、
-`Thread title already exists`
+もし指定したISBNの本がデータベースに存在しない場合、
+`Book doesn't exist`
+が返ります。
+
+もし指定したuserIDのユーザがデータベースに存在しない場合、
+`User doesn't exist`
+が返ります。
+
+
+## POSTリクエスト（スレッドメッセージ）
+
+POSTリクエストは、
+`$ curl -X POST -H "Content-Type: application/json" -d '{"userID":xxx, ...}' {ホストのIPアドレス}:8080/threads/:threadID`
+で行えます。
+
+登録が成功した場合、
+`{"id":x,"userID":x,"message":"~","threadID":xxx}\n`
+が返ります。
+
+もしJSONがフォーマット通りでない場合、
+`Invalid Post Format`
+が返ります。
+
+もし指定したthreadIDのスレッドがデータベースに存在しない場合、
+`Thread doesn't exist`
+が返ります。
+
+もし指定したuserIDのユーザがデータベースに存在しない場合、
+`User doesn't exist`
 が返ります。
