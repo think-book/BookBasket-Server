@@ -161,10 +161,6 @@ POSTリクエストは、
 `User doesn't exist`
 が返ります。
 
-もしスレッドタイトルがすでに存在している場合（同じ本に同名のスレッドがある場合）、
-`Thread title already exists`
-が返ります。
-
 
 ## POSTリクエスト（スレッドメッセージ）
 
