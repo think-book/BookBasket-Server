@@ -326,13 +326,6 @@ func PostThreadTitle(c echo.Context) error {
 	// スレッドのISBN設定
 	info.ISBN = isbn
 
-	// スレッドタイトル情報が既に登録ずみならBad request
-	for _, b := range threadMetaInfoDataBase {
-		if info.ISBN == b.ISBN && info.Title == b.Title {
-			return c.String(http.StatusBadRequest, "Thread title already exists")
-		}
-	}
-
 	id := threadMetaInfoDataBase[len(threadMetaInfoDataBase)-1].ID + 1
 
 	info.ID = id
