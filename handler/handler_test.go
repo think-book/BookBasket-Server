@@ -111,9 +111,6 @@ var (
 	bookInfoExists = `Book info already exists`
 
 	// エラーメッセージ
-	threadTitleExists = `Thread title already exists`
-
-	// エラーメッセージ
 	noUser = `User doesn't exist`
 
 	// エラーメッセージ
@@ -512,26 +509,6 @@ func TestAfterPostThreadTitle(t *testing.T) {
 		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, threadTitlesAfterPost, rec.Body.String())
-	}
-}
-
-func TestPostThreadTitleMultipleTimes(t *testing.T) {
-	// Setup
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(threadTitleForPost))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetPath("/books/:ISBN/threads")
-	c.SetParamNames("ISBN")
-	c.SetParamValues("100")
-
-	// Assertions
-	if assert.NoError(t, PostThreadTitle(c)) {
-		res := rec.Result()
-		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
-		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		assert.Equal(t, threadTitleExists, rec.Body.String())
 	}
 }
 
