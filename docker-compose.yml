@@ -12,13 +12,6 @@ services:
     container_name: my_db
     ports:
       - "3306:3306"
-  test:
-    build:
-      context: ./server
-      dockerfile: test.dockerfile
-    depends_on:
-      - "db"
-    tty: true
     
     
   

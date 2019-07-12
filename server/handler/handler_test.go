@@ -125,7 +125,7 @@ var (
 
 func TestMain(m *testing.M) {
 	// mysqlに接続
-	db, err := sqlx.Open("mysql", "root:root@tcp(my_db:3306)/bookbasket")
+	db, err := sqlx.Open("mysql", "root:root@tcp(127.0.0.1:3306)/bookbasket")
 	if err != nil {
 		panic(err)
 	}
