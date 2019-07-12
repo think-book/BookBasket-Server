@@ -3,9 +3,12 @@ package handler
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 )
@@ -119,6 +122,23 @@ var (
 	// エラーメッセージ
 	noThread = `Thread doesn't exist`
 )
+
+func TestMain(m *testing.M) {
+	// mysqlに接続
+	db, err := sqlx.Open("mysql", "root:root@tcp(my_db:3306)/bookbasket")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	// handlerにデータベースの参照を渡す。
+	SetDB(db)
+
+	// 全テスト実行
+	code := m.Run()
+
+	os.Exit(code)
+}
 
 func TestGetAll(t *testing.T) {
 	// Setup
