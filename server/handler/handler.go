@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
 )
 
@@ -11,51 +12,54 @@ type (
 
 	// 本情報用構造体（POST、データ保存用）
 	BookInfo struct {
-		ID          int    `json:"id"`
-		Title       string `json:"title"`
-		Description string `json:"description"`
-		ISBN        int    `json:"ISBN"`
+		ID          int    `json:"id" db:"id"`
+		Title       string `json:"title" db:"title"`
+		Description string `json:"description" db:"description"`
+		ISBN        int    `json:"ISBN" db:"ISBN"`
 	}
 
 	// 本メタ情報用構造体（GET用）
 	BookMetaInfo struct {
-		ID    int    `json:"id"`
-		Title string `json:"title"`
-		ISBN  int    `json:"ISBN"`
+		ID    int    `json:"id" db:"id"`
+		Title string `json:"title" db:"title"`
+		ISBN  int    `json:"ISBN" db:"ISBN"`
 	}
 
 	// 本詳細情報用構造体（GET用）
 	BookProfileInfo struct {
-		ISBN        int    `json:"ISBN"`
-		Title       string `json:"title"`
-		Description string `json:"description"`
+		ISBN        int    `json:"ISBN" db:"ISBN"`
+		Title       string `json:"title" db:"title"`
+		Description string `json:"description" db:"description"`
 	}
 
 	// スレッドメタ情報
 	ThreadMetaInfo struct {
-		ID     int    `json:"id"`
-		UserID int    `json:"userID"`
-		Title  string `json:"title"`
-		ISBN   int    `json:"ISBN"`
+		ID     int    `json:"id" db:"id"`
+		UserID int    `json:"userID" db:"userID"`
+		Title  string `json:"title" db:"title"`
+		ISBN   int    `json:"ISBN" db:"ISBN"`
 	}
 
 	// スレッド発言情報
 	ThreadMessage struct {
-		ID       int    `json:"id"`
-		UserID   int    `json:"userID"`
-		Message  string `json:"message"`
-		ThreadID int    `json:"threadID"`
+		ID       int    `json:"id" db:"id"`
+		UserID   int    `json:"userID" db:"userID"`
+		Message  string `json:"message" db:"message"`
+		ThreadID int    `json:"threadID" db:"threadID"`
 	}
 
 	// ユーザ情報
 	UserInfo struct {
-		ID       int    `json:"id"`
-		UserName string `json:"userName"`
-		Password string `json:"password"`
+		ID       int    `json:"id" db:"id"`
+		UserName string `json:"userName" db:"userName"`
+		Password string `json:"password" db:"password"`
 	}
 )
 
 var (
+	//　データベースへの参照
+	db *sqlx.DB
+
 	tmpData1 = BookInfo{
 		ID:          1,
 		Title:       "cool book",
@@ -149,20 +153,21 @@ var (
 	}
 )
 
+// SetDB データベースへの参照をセット
+func SetDB(d *sqlx.DB) {
+	db = d
+}
+
 // GetBookMetaInfoAll 本情報全取得
 func GetBookMetaInfoAll(c echo.Context) error { //c をいじって Request, Responseを色々する
 
-	// message（bookMetaInfo配列） にメタ情報を順次格納していく
+	// message（bookMetaInfo配列） にメタ情報を格納
 	message := []BookMetaInfo{}
 
-	for _, m := range bookDataBase {
-		tmp := BookMetaInfo{
-			ID:    m.ID,
-			Title: m.Title,
-			ISBN:  m.ISBN,
-		}
-
-		message = append(message, tmp)
+	//全件取得クエリ messageに結果をバインド
+	err := db.Select(&message, "SELECT id, title, ISBN FROM bookInfo")
+	if err != nil {
+		return c.String(http.StatusNotFound, "Not Found")
 	}
 
 	return c.JSON(http.StatusOK, message)
@@ -177,18 +182,14 @@ func GetBookProfile(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "ISBN must be an integer")
 	}
 
-	for _, b := range bookDataBase {
-		if isbn == b.ISBN {
-			tmp := BookProfileInfo{
-				Title:       b.Title,
-				ISBN:        b.ISBN,
-				Description: b.Description,
-			}
-			return c.JSON(http.StatusOK, tmp)
-		}
+	var profile BookProfileInfo
+	// 一件取得用クエリ　profileに結果をバインド
+	err = db.Get(&profile, "SELECT ISBN, title, description FROM bookInfo WHERE ISBN=?", isbn)
+	if err != nil {
+		return c.String(http.StatusNotFound, "Not Found")
 	}
 
-	return c.String(http.StatusNotFound, "Not Found")
+	return c.JSON(http.StatusOK, profile)
 
 }
 
