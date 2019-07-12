@@ -16,7 +16,11 @@ RUN go build -o /server
 FROM alpine:3.9
 
 WORKDIR /server
+
+RUN apk add --update --no-cache bash
+
 COPY --from=build /server .
+COPY ./wait-for-it.sh .
 
 EXPOSE 8080
-ENTRYPOINT ["./server"]
+

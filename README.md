@@ -63,8 +63,9 @@ $ docker-compose up --build
 
 ホスト側の8080番ポートでアクセスできます。
 
-`$ docker-compose down`
-でコンテナ終了
+`$ docker-compose down -v`
+でデータベース初期化してコンテナ終了
+(-v しないとvolumeフォルダ？がどんどん溜まっていく)
 
 
 ## POSTフォーマット
