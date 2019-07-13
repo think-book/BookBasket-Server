@@ -7,6 +7,11 @@ executors:
         environment:
           - GO111MODULE: "on"
           - GOCACHE: "/tmp/go/cache"
+      - image: circleci/mysql:5.7
+        environment:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: bookbasket
+          TZ: "Asia/Tokyo"
     working_directory: ~/workspace
 
 commands:
@@ -61,7 +66,9 @@ jobs:
           name: GolangCI-Lint version
           command: ./bin/golangci-lint --version
       - run:
-          command: ./bin/golangci-lint run
+          command: |
+          cd ./server
+          ./bin/golangci-lint run
   build:
     executor: default
     steps:
@@ -69,7 +76,9 @@ jobs:
       - restore_mod_cache
       - restore_build_cache
       - run:
-          command: go build -v
+          command: |
+          cd ./server
+          go build -v
       - save_build_cache
   test:
     executor: default
@@ -78,8 +87,26 @@ jobs:
       - restore_mod_cache
       - restore_build_cache
       - run:
+      # Our primary container isn't MYSQL so run a sleep command until it's ready.
+          name: Waiting for MySQL to be ready
+          command: |
+            for i in `seq 1 10`;
+            do
+              nc -z 127.0.0.1 3306 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for MySQL && exit 1
+      - run:
+          name: Install MySQL CLI; Import dummy data; run an example query
+          command: |
+            sudo apt-get install mysql-client
+            mysql -h 127.0.0.1 -u root -root bookbasket < ./database/sql/setup.sql
+      - run:
           name: Run go tests
-          command: go test ./... -race -coverprofile=coverage.txt -covermode=atomic
+          command: |
+          cd ./server
+          go test ./... -race -coverprofile=coverage.txt -covermode=atomic
       - run:
           name: Upload coverage results to Codecov
           command: bash <(curl -s https://codecov.io/bash)
