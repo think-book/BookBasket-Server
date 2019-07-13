@@ -10,7 +10,6 @@ executors:
       - image: circleci/mysql:5.7
         environment:
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: bookbasket
           TZ: "Asia/Tokyo"
     working_directory: ~/workspace
 
