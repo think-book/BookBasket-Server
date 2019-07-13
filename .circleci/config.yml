@@ -67,8 +67,8 @@ jobs:
           command: ./bin/golangci-lint --version
       - run:
           command: |
-          cd ./server
-          ./bin/golangci-lint run
+            cd ./server
+            ./bin/golangci-lint run
   build:
     executor: default
     steps:
@@ -77,8 +77,8 @@ jobs:
       - restore_build_cache
       - run:
           command: |
-          cd ./server
-          go build -v
+            cd ./server
+            go build -v
       - save_build_cache
   test:
     executor: default
@@ -105,8 +105,8 @@ jobs:
       - run:
           name: Run go tests
           command: |
-          cd ./server
-          go test ./... -race -coverprofile=coverage.txt -covermode=atomic
+            cd ./server
+            go test ./... -race -coverprofile=coverage.txt -covermode=atomic
       - run:
           name: Upload coverage results to Codecov
           command: bash <(curl -s https://codecov.io/bash)
