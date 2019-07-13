@@ -98,10 +98,10 @@ jobs:
             done
             echo Failed waiting for MySQL && exit 1
       - run:
-          name: Install MySQL CLI; Import dummy data; run an example query
+          name: Install MySQL CLI; Import dummy data
           command: |
             sudo apt-get install mysql-client
-            mysql -h 127.0.0.1 -u root -root bookbasket < ./database/sql/setup.sql
+            mysql -h 127.0.0.1 -u root -proot < ./database/sql/setup.sql
       - run:
           name: Run go tests
           command: |
