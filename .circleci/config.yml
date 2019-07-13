@@ -20,12 +20,12 @@ commands:
       - restore_cache:
           name: Restore go modules cache
           keys:
-            - go-mod-v1-{{ checksum "go.sum" }}
+            - go-mod-v1-{{ checksum "./server/go.sum" }}
   save_mod_cache:
     steps:
       - save_cache:
           name: Save go modules cache
-          key: go-mod-v1-{{ checksum "go.sum" }}
+          key: go-mod-v1-{{ checksum "./server/go.sum" }}
           paths:
             - /go/pkg/mod
   restore_build_cache:
@@ -68,7 +68,7 @@ jobs:
       - run:
           command: |
             cd ./server
-            ./bin/golangci-lint run
+            ../bin/golangci-lint run
   build:
     executor: default
     steps:
