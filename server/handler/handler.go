@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"fmt"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
 )
@@ -12,17 +14,15 @@ type (
 
 	// 本情報用構造体（POST、データ保存用）
 	BookInfo struct {
-		ID          int    `json:"id" db:"id"`
+		ISBN        int    `json:"ISBN" db:"ISBN"`
 		Title       string `json:"title" db:"title"`
 		Description string `json:"description" db:"description"`
-		ISBN        int    `json:"ISBN" db:"ISBN"`
 	}
 
 	// 本メタ情報用構造体（GET用）
 	BookMetaInfo struct {
-		ID    int    `json:"id" db:"id"`
-		Title string `json:"title" db:"title"`
 		ISBN  int    `json:"ISBN" db:"ISBN"`
+		Title string `json:"title" db:"title"`
 	}
 
 	// 本詳細情報用構造体（GET用）
@@ -34,7 +34,6 @@ type (
 
 	// スレッドメタ情報
 	ThreadMetaInfo struct {
-		ID     int    `json:"id" db:"id"`
 		UserID int    `json:"userID" db:"userID"`
 		Title  string `json:"title" db:"title"`
 		ISBN   int    `json:"ISBN" db:"ISBN"`
@@ -42,7 +41,6 @@ type (
 
 	// スレッド発言情報
 	ThreadMessage struct {
-		ID       int    `json:"id" db:"id"`
 		UserID   int    `json:"userID" db:"userID"`
 		Message  string `json:"message" db:"message"`
 		ThreadID int    `json:"threadID" db:"threadID"`
@@ -59,98 +57,6 @@ type (
 var (
 	//　データベースへの参照
 	db *sqlx.DB
-
-	tmpData1 = BookInfo{
-		ID:          1,
-		Title:       "cool book",
-		Description: "A super hero beats monsters.",
-		ISBN:        100,
-	}
-
-	tmpData2 = BookInfo{
-		ID:          2,
-		Title:       "awesome book",
-		Description: "A text book of go langage.",
-		ISBN:        200,
-	}
-
-	// 本情報格納用配列　（そのうちデータベースに移行）
-	bookDataBase = []BookInfo{
-		tmpData1,
-		tmpData2,
-	}
-
-	tmpThreadMeta1 = ThreadMetaInfo{
-		ID:     1,
-		UserID: 1,
-		Title:  "I don't understand p.32 at all.",
-		ISBN:   100,
-	}
-
-	tmpThreadMeta2 = ThreadMetaInfo{
-		ID:     2,
-		UserID: 2,
-		Title:  "there is an awful typo on p.55",
-		ISBN:   100,
-	}
-
-	// スレッドのメタ情報格納用配列　（そのうちデータベースに移行）
-	threadMetaInfoDataBase = []ThreadMetaInfo{
-		tmpThreadMeta1,
-		tmpThreadMeta2,
-	}
-
-	tmpThreadMessage1 = ThreadMessage{
-		ID:       1,
-		UserID:   11,
-		Message:  "Me neither.",
-		ThreadID: 1,
-	}
-
-	tmpThreadMessage2 = ThreadMessage{
-		ID:       2,
-		UserID:   12,
-		Message:  "I think the author tries to say ...",
-		ThreadID: 1,
-	}
-
-	// スレッドのメッセージ情報格納用配列　（そのうちデータベースに移行）
-	threadMessagesDataBase = []ThreadMessage{
-		tmpThreadMessage1,
-		tmpThreadMessage2,
-	}
-
-	tmpUser1 = UserInfo{
-		ID:       1,
-		UserName: "Alice",
-		Password: "pass",
-	}
-
-	tmpUser2 = UserInfo{
-		ID:       2,
-		UserName: "Bob",
-		Password: "word",
-	}
-
-	tmpUser3 = UserInfo{
-		ID:       11,
-		UserName: "Carol",
-		Password: "qwer",
-	}
-
-	tmpUser4 = UserInfo{
-		ID:       12,
-		UserName: "Charlie",
-		Password: "tyui",
-	}
-
-	// ユーザ情報格納用配列（そのうちデータベースに以降）
-	userInfoDataBase = []UserInfo{
-		tmpUser1,
-		tmpUser2,
-		tmpUser3,
-		tmpUser4,
-	}
 )
 
 // SetDB データベースへの参照をセット
@@ -165,9 +71,9 @@ func GetBookMetaInfoAll(c echo.Context) error { //c をいじって Request, Res
 	message := []BookMetaInfo{}
 
 	//全件取得クエリ messageに結果をバインド
-	err := db.Select(&message, "SELECT id, title, ISBN FROM bookInfo")
+	err := db.Select(&message, "SELECT ISBN, title FROM bookInfo")
 	if err != nil {
-		return c.String(http.StatusNotFound, "Not Found")
+		return c.String(http.StatusBadRequest, "Bad Request")
 	}
 
 	return c.JSON(http.StatusOK, message)
@@ -184,7 +90,7 @@ func GetBookProfile(c echo.Context) error {
 
 	var profile BookProfileInfo
 	// 一件取得用クエリ　profileに結果をバインド
-	err = db.Get(&profile, "SELECT ISBN, title, description FROM bookInfo WHERE ISBN=?", isbn)
+	err = db.Get(&profile, "SELECT * FROM bookInfo WHERE ISBN=?", isbn)
 	if err != nil {
 		return c.String(http.StatusNotFound, "Not Found")
 	}
@@ -195,10 +101,10 @@ func GetBookProfile(c echo.Context) error {
 
 // PostBookInfo 本情報Post用メソッド
 func PostBookInfo(c echo.Context) error {
-	info := new(BookInfo)
+	var info BookInfo
 
-	// request bodyをmetaInfo構造体にバインド
-	if err := c.Bind(info); err != nil {
+	// request bodyをBookInfo構造体にバインド
+	if err := c.Bind(&info); err != nil {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
@@ -207,18 +113,12 @@ func PostBookInfo(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
-	// メタ情報が既に登録ずみならBad request
-	for _, b := range bookDataBase {
-		if info.ISBN == b.ISBN {
-			return c.String(http.StatusBadRequest, "Book info already exists")
-		}
+	// 一件挿入用クエリ
+	_, err := db.Exec("INSERT INTO bookInfo (ISBN, title, description) VALUES(?,?,?)", info.ISBN, info.Title, info.Description)
+	// PRIMARY KEY(ISBN)がすでに存在した時（を想定）
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Book info already exists")
 	}
-
-	id := bookDataBase[len(bookDataBase)-1].ID + 1
-
-	info.ID = id
-
-	bookDataBase = append(bookDataBase, *info)
 
 	return c.JSON(http.StatusOK, info)
 }
@@ -233,21 +133,24 @@ func GetThreadTitles(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "ISBN must be an integer")
 	}
 
+	var profile BookProfileInfo
 	// 本データベースに該当のISBNの本が登録されているか確認
-	for _, b := range bookDataBase {
-		if isbn == b.ISBN {
-			message := []ThreadMetaInfo{}
-
-			// 該当のISBNに対応するスレッドタイトルを検索
-			for _, f := range threadMetaInfoDataBase {
-				if b.ISBN == f.ISBN {
-					message = append(message, f)
-				}
-			}
-			return c.JSON(http.StatusOK, message)
-		}
+	err = db.Get(&profile, "SELECT * FROM bookInfo WHERE ISBN=?", isbn)
+	if err != nil {
+		return c.String(http.StatusNotFound, "Not Found")
 	}
-	return c.String(http.StatusNotFound, "Not Found")
+
+	// message（ThreadMetaInfo配列） にスレッド情報を格納
+	message := []ThreadMetaInfo{}
+
+	//全件取得クエリ messageに結果をバインド
+	err = db.Select(&message, "SELECT userID, title, ISBN FROM threadMetaInfo WHERE ISBN=?", isbn)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Bad Request")
+	}
+
+	return c.JSON(http.StatusOK, message)
+
 }
 
 // GetThreadMessages 各スレッドのメッセージ取得用メソッド
@@ -260,21 +163,24 @@ func GetThreadMessages(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "ThreadID must be an integer")
 	}
 
+	var threadMeta ThreadMetaInfo
 	// スレッドメタ情報データベースに該当のthreadIDをもつものが登録されているか確認
-	for _, f := range threadMetaInfoDataBase {
-		if threadID == f.ID {
-			message := []ThreadMessage{}
-			// 該当のthreadIDに対応するメッセージを検索
-			for _, m := range threadMessagesDataBase {
-				if threadID == m.ThreadID {
-					message = append(message, m)
-				}
-			}
-
-			return c.JSON(http.StatusOK, message)
-		}
+	err = db.Get(&threadMeta, "SELECT userID, title, ISBN FROM threadMetaInfo WHERE id=?", threadID)
+	if err != nil {
+		return c.String(http.StatusNotFound, "Not Found")
 	}
-	return c.String(http.StatusNotFound, "Not Found")
+
+	// message（ThreadMetaInfo配列） にスレッド情報を格納
+	message := []ThreadMessage{}
+
+	//全件取得クエリ messageに結果をバインド
+	err = db.Select(&message, "SELECT userID, message, threadID FROM threadMessage WHERE threadID=?", threadID)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Bad Request")
+	}
+
+	return c.JSON(http.StatusOK, message)
+
 }
 
 // PostThreadTitle スレッドタイトルPost用メソッド
@@ -298,40 +204,30 @@ func PostThreadTitle(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
+	var book BookInfo
 	// ISBNがデータベースにあるか確認
-	isbnExists := false
-	for _, b := range bookDataBase {
-		if isbn == b.ISBN {
-			isbnExists = true
-			break
-		}
-	}
+	err = db.Get(&book, "SELECT * FROM bookInfo WHERE ISBN=?", isbn)
 	// ISBNが存在しなければBad request
-	if !isbnExists {
+	if err != nil {
 		return c.String(http.StatusBadRequest, "Book doesn't exist")
 	}
 
+	var user UserInfo
 	// userIDがデータベースにあるか確認
-	userExists := false
-	for _, u := range userInfoDataBase {
-		if info.UserID == u.ID {
-			userExists = true
-			break
-		}
-	}
+	err = db.Get(&user, "SELECT * FROM userInfo WHERE id=?", info.UserID)
 	// ユーザが存在しなければBad request
-	if !userExists {
+	if err != nil {
 		return c.String(http.StatusBadRequest, "User doesn't exist")
 	}
 
 	// スレッドのISBN設定
 	info.ISBN = isbn
 
-	id := threadMetaInfoDataBase[len(threadMetaInfoDataBase)-1].ID + 1
-
-	info.ID = id
-
-	threadMetaInfoDataBase = append(threadMetaInfoDataBase, *info)
+	// 一件挿入用クエリ
+	_, err = db.Exec("INSERT INTO threadMetaInfo (userID, title, ISBN) VALUES(?,?,?)", info.UserID, info.Title, info.ISBN)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Bad Request")
+	}
 
 	return c.JSON(http.StatusOK, info)
 }
@@ -357,40 +253,31 @@ func PostThreadMessage(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
-	// threadIDがデータベースにあるか確認
-	threadExists := false
-	for _, t := range threadMetaInfoDataBase {
-		if threadID == t.ID {
-			threadExists = true
-			break
-		}
-	}
+	var threadMeta ThreadMetaInfo
+	// userIDがデータベースにあるか確認
+	err = db.Get(&threadMeta, "SELECT userID, title, ISBN FROM threadMetaInfo WHERE id=?", threadID)
 	// threadIDが存在しなければBad request
-	if !threadExists {
+	if err != nil {
+		fmt.Println(err)
 		return c.String(http.StatusBadRequest, "Thread doesn't exist")
 	}
 
+	var user UserInfo
 	// userIDがデータベースにあるか確認
-	userExists := false
-	for _, u := range userInfoDataBase {
-		if info.UserID == u.ID {
-			userExists = true
-			break
-		}
-	}
+	err = db.Get(&user, "SELECT * FROM userInfo WHERE id=?", info.UserID)
 	// ユーザが存在しなければBad request
-	if !userExists {
+	if err != nil {
 		return c.String(http.StatusBadRequest, "User doesn't exist")
 	}
 
 	// メッセージのthreadID設定
 	info.ThreadID = threadID
 
-	id := threadMessagesDataBase[len(threadMessagesDataBase)-1].ID + 1
-
-	info.ID = id
-
-	threadMessagesDataBase = append(threadMessagesDataBase, *info)
+	// 一件挿入用クエリ
+	_, err = db.Exec("INSERT INTO threadMessage (userID, message, threadID) VALUES(?,?,?)", info.UserID, info.Message, info.ThreadID)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Bad Request")
+	}
 
 	return c.JSON(http.StatusOK, info)
 
