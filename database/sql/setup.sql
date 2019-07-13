@@ -1,10 +1,9 @@
 CREATE DATABASE bookbasket;
 
 CREATE TABLE bookbasket.bookInfo(
-    id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    ISBN INT NOT NULL PRIMARY KEY,
     title VARCHAR(50),
-    description TEXT,
-    ISBN INT 
+    description TEXT
 );
 
 INSERT INTO bookbasket.bookInfo (title, description, ISBN) VALUES(
@@ -58,7 +57,7 @@ INSERT INTO bookbasket.threadMessage (userID, message, threadID) VALUES(
 
 
 CREATE TABLE bookbasket.userInfo(
-    id INT NOT NULL PRIMARY KEY,
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     userName VARCHAR(50),
     password VARCHAR(50)
 );

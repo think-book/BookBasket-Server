@@ -18,7 +18,7 @@ var (
 	// GET用
 
 	// GetBookMetaInfoAll用確認データ
-	metaInfoTestData = `[{"id":1,"title":"cool book","ISBN":100},{"id":2,"title":"awesome book","ISBN":200}]
+	metaInfoTestData = `[{"ISBN":100,"title":"cool book"},{"ISBN":200,"title":"awesome book"}]
 `
 
 	// GetBookProfile用確認データ
@@ -26,13 +26,13 @@ var (
 `
 
 	// GETThreadTitles用確認データ
-	threadTitlesTestData = `[{"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100}]
+	threadTitlesTestData = `[{"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"userID":2,"title":"there is an awful typo on p.55","ISBN":100}]
 `
 	// 空配列確認データ
 	emptyData = `[]
 `
 	// GETThreadMessages用確認データ
-	threadMessagesTestData = `[{"id":1,"userID":11,"message":"Me neither.","threadID":1},{"id":2,"userID":12,"message":"I think the author tries to say ...","threadID":1}]
+	threadMessagesTestData = `[{"userID":11,"message":"Me neither.","threadID":1},{"userID":12,"message":"I think the author tries to say ...","threadID":1}]
 `
 
 	// POST用
@@ -47,18 +47,18 @@ var (
 	threadMessageForPost = `{"userID":1,"message":"Maybe it's because ..."}`
 
 	// 本情報POST送信完了確認データ
-	postReturnBookInfo = `{"id":3,"title":"epic book","description":"funny","ISBN":300}
+	postReturnBookInfo = `{"ISBN":300,"title":"epic book","description":"funny"}
 `
 	// スレッドタイトルPOST送信完了確認データ
-	postReturnThreadTitle = `{"id":3,"userID":1,"title":"I don't understand ...","ISBN":100}
+	postReturnThreadTitle = `{"userID":1,"title":"I don't understand ...","ISBN":100}
 `
 
 	// スレッドメッセージPOST送信完了確認データ
-	postReturnThreadMessage = `{"id":3,"userID":1,"message":"Maybe it's because ...","threadID":1}
+	postReturnThreadMessage = `{"userID":1,"message":"Maybe it's because ...","threadID":1}
 `
 
 	// POSTした後のGET確認データ(メタ情報)
-	metaDataAfterPost = `[{"id":1,"title":"cool book","ISBN":100},{"id":2,"title":"awesome book","ISBN":200},{"id":3,"title":"epic book","ISBN":300}]
+	metaDataAfterPost = `[{"ISBN":100,"title":"cool book"},{"ISBN":200,"title":"awesome book"},{"ISBN":300,"title":"epic book"}]
 `
 
 	// POSTした後のGET確認データ(詳細情報)
@@ -66,11 +66,11 @@ var (
 `
 
 	// POSTした後のGET確認データ（スレッドタイトル）
-	threadTitlesAfterPost = `[{"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100},{"id":3,"userID":1,"title":"I don't understand ...","ISBN":100}]
+	threadTitlesAfterPost = `[{"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"userID":2,"title":"there is an awful typo on p.55","ISBN":100},{"userID":1,"title":"I don't understand ...","ISBN":100}]
 `
 
 	// POSTした後のGET確認データ（スレッドメッセージ）
-	threadMessagesAfterPost = `[{"id":1,"userID":11,"message":"Me neither.","threadID":1},{"id":2,"userID":12,"message":"I think the author tries to say ...","threadID":1},{"id":3,"userID":1,"message":"Maybe it's because ...","threadID":1}]
+	threadMessagesAfterPost = `[{"userID":11,"message":"Me neither.","threadID":1},{"userID":12,"message":"I think the author tries to say ...","threadID":1},{"userID":1,"message":"Maybe it's because ...","threadID":1}]
 `
 
 	// ダメなPOST
@@ -124,6 +124,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
+
 	// mysqlに接続
 	db, err := sqlx.Open("mysql", "root:root@tcp(127.0.0.1:3306)/bookbasket")
 	if err != nil {
