@@ -7,7 +7,7 @@ executors:
         environment:
           - GO111MODULE: "on"
           - GOCACHE: "/tmp/go/cache"
-      - image: circleci/mysql:5.7
+      - image: circleci/mysql:8.0
         environment:
           MYSQL_ROOT_PASSWORD: root
           TZ: "Asia/Tokyo"
