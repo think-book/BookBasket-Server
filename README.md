@@ -53,13 +53,15 @@ Docker上で動きます。
 
 # Usage
 
+## サーバ
+
 docker-compose.ymlと同じ場所で、
 ```
 $ docker-compose up --build
 ```
-でdocker上にサーバが立ち上がります。
+でdocker上にサーバとSQLサーバが立ち上がります。
 
-ホスト側の8080番ポートでアクセスできます。
+サーバはホスト側の8080番ポートでアクセスできます。
 
 `$ docker-compose down -v`
 でデータベース初期化してコンテナ終了
@@ -68,6 +70,24 @@ $ docker-compose up --build
 データベースを初期化しない場合は、
 
 `$ docker-compose stop`
+
+## テスト
+
+mysqlのコンテナ立ち上げ（buildは初回のみ）
+```
+$ docker build -t (イメージのタグ名) (database/ の場所)
+$ docker run --name (コンテナ名) -p 3306:3306 (イメージのタグ名)
+```
+
+mysqlサーバを立ち上げたら、ローカルマシンのserver/で、
+`$ go test -v ./...`
+でテスト実行
+
+データベースを初期化して終了する方法は、
+```
+$ docker stop -v (コンテナ名)
+$ docker rm (コンテナ名)
+```
 
 
 ## POSTフォーマット
