@@ -59,7 +59,7 @@ docker-compose.ymlと同じ場所で、
 ```
 $ docker-compose up --build
 ```
-でdocker上にサーバとSQLサーバが立ち上がります。
+でdocker上にサーバとmysqlサーバが立ち上がります。
 
 サーバはホスト側の8080番ポートでアクセスできます。
 
@@ -83,7 +83,7 @@ mysqlサーバを立ち上げたら、ローカルマシンのserver/で、
 `$ go test -v ./...`
 でテスト実行
 
-データベースを初期化して終了する方法は、
+データベースを初期化してmysqlサーバを終了するには(データベース初期化しないなら、stopだけでOK)、
 ```
 $ docker stop -v (コンテナ名)
 $ docker rm (コンテナ名)
