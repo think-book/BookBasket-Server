@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"fmt"
-
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
 )
@@ -258,7 +256,6 @@ func PostThreadMessage(c echo.Context) error {
 	err = db.Get(&threadMeta, "SELECT userID, title, ISBN FROM threadMetaInfo WHERE id=?", threadID)
 	// threadIDが存在しなければBad request
 	if err != nil {
-		fmt.Println(err)
 		return c.String(http.StatusBadRequest, "Thread doesn't exist")
 	}
 

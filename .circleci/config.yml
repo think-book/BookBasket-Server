@@ -107,6 +107,8 @@ jobs:
           command: |
             cd ./server
             go test ./... -race -coverprofile=coverage.txt -covermode=atomic
+            mv ./coverage.txt ..
+            cd ..
       - run:
           name: Upload coverage results to Codecov
           command: bash <(curl -s https://codecov.io/bash)
