@@ -8,17 +8,46 @@ BookBasket-Server
 
 メモリ上にあらかじめ格納された本情報をGETRequestで取得できます。
 POSTも実装しました。
+フォーラム情報のGETを実装しました。
+スレッドタイトル、スレッドメッセージのPOSTを実装しました。
 
 
 # Description
 
-メモリ上に以下のデータがあるので、これをGETRequestで取得できます。
+メモリ上に以下のデータがあるので、これをGETRequestで取得できます。(ユーザ情報はまだ)
+
 
 ### 本のデータ
 ```
 {"id": 1, "title": "cool book", "description": "A super hero beats monsters.", "ISBN": 100},
 {"id": 2, "title": "awesome book", "description": "A text book of go langage.", "ISBN": 200}
 ```
+
+### スレッドのデータ
+
+#### メタ情報
+ISBN:100の本に対するスレッドのタイトルリスト
+```
+{"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},
+{"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100}
+```
+
+#### 発言情報
+threadID:1のスレッドタイトル（上のメタ情報のid = 1のもの）に対するスレッドの発言リスト
+```
+{"id":1,"userID":11,"message":"Me neither.","threadID":1},
+{"id":2,"userID":12,"message":"I think the author tries to say ...","threadID":1}
+```
+
+### ユーザのデータ
+
+```
+{"id":1, "userName":"Alice", "password": "pass"},
+{"id":2, "userName":"Bob", "password": "word"},
+{"id":11, "userName":"Carol", "password": "qwer"},
+{"id":12, "userName":"Charlie", "password": "tyui"}
+```
+
 
 # Requirement
 
@@ -39,13 +68,21 @@ $ docker-compose up --build
 
 
 ## POSTフォーマット
+
+### 本情報
 `{"title":"~","ISBN":xxx,"description":"~"}`
+
+### スレッドタイトル
+`{"userID":xxx,"title":"~"}`
+
+### スレッドメッセージ
+`{"userID":xxx,"message":"~"}`
 
 で登録できます。
 
 # Example
 
-## GET リクエスト
+## GET リクエスト(本情報)
 サーバ立ち上げ後、
 `$ curl {ホストのIPアドレス}:8080/books`
 で
@@ -70,11 +107,28 @@ ISBNでの取得は、
 `Not Found`
 が返ります。
 
-## POSTリクエスト
+## GET リクエスト(フォーラム情報)
+あるISBNの本のスレッドタイトルのリストを取得する場合、
+`$ curl {ホストのIPアドレス}:8080/books/:ISBN/threads`
+で取得できる。
+
+あるスレッドタイトルに対する発言リストを取得する場合、
+`$ curl {ホストのIPアドレス}:8080/threads/:threadID`
+で取得できる。
+
+いずれも、対応するISBNもしくはthreadIDが存在しなかった場合は、
+`Not Found`
+が返ります。
+
+## POSTリクエスト（本情報）
 
 POSTリクエストは、
 `$ curl -X POST -H "Content-Type: application/json" -d '{"title":"~", ...}' {ホストのIPアドレス}:8080/books`
 で行えます。
+
+登録が成功した場合、
+`{"id":x,"title":"~","description":"~","ISBN":xxx}\n`
+が返ります。
 
 もしJSONがフォーマット通りでない場合、
 `Invalid Post Format`
@@ -82,4 +136,50 @@ POSTリクエストは、
 
 もし詳細情報がすでに存在している場合、
 `Book info already exists`
+が返ります。
+
+
+## POSTリクエスト（スレッドタイトル）
+
+POSTリクエストは、
+`$ curl -X POST -H "Content-Type: application/json" -d '{"userID":xxx, ...}' {ホストのIPアドレス}:8080/books/:ISBN/threads`
+で行えます。
+
+登録が成功した場合、
+`{"id":x,"userID":x,"title":"~","ISBN":xxx}\n`
+が返ります。
+
+もしJSONがフォーマット通りでない場合、
+`Invalid Post Format`
+が返ります。
+
+もし指定したISBNの本がデータベースに存在しない場合、
+`Book doesn't exist`
+が返ります。
+
+もし指定したuserIDのユーザがデータベースに存在しない場合、
+`User doesn't exist`
+が返ります。
+
+
+## POSTリクエスト（スレッドメッセージ）
+
+POSTリクエストは、
+`$ curl -X POST -H "Content-Type: application/json" -d '{"userID":xxx, ...}' {ホストのIPアドレス}:8080/threads/:threadID`
+で行えます。
+
+登録が成功した場合、
+`{"id":x,"userID":x,"message":"~","threadID":xxx}\n`
+が返ります。
+
+もしJSONがフォーマット通りでない場合、
+`Invalid Post Format`
+が返ります。
+
+もし指定したthreadIDのスレッドがデータベースに存在しない場合、
+`Thread doesn't exist`
+が返ります。
+
+もし指定したuserIDのユーザがデータベースに存在しない場合、
+`User doesn't exist`
 が返ります。
