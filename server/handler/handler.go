@@ -71,7 +71,7 @@ func GetBookMetaInfoAll(c echo.Context) error { //c をいじって Request, Res
 	//全件取得クエリ messageに結果をバインド
 	err := db.Select(&message, "SELECT ISBN, title FROM bookInfo")
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Bad Request")
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 
 	return c.JSON(http.StatusOK, message)
@@ -144,7 +144,7 @@ func GetThreadTitles(c echo.Context) error {
 	//全件取得クエリ messageに結果をバインド
 	err = db.Select(&message, "SELECT userID, title, ISBN FROM threadMetaInfo WHERE ISBN=?", isbn)
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Bad Request")
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 
 	return c.JSON(http.StatusOK, message)
@@ -174,7 +174,7 @@ func GetThreadMessages(c echo.Context) error {
 	//全件取得クエリ messageに結果をバインド
 	err = db.Select(&message, "SELECT userID, message, threadID FROM threadMessage WHERE threadID=?", threadID)
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Bad Request")
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 
 	return c.JSON(http.StatusOK, message)
@@ -224,7 +224,7 @@ func PostThreadTitle(c echo.Context) error {
 	// 一件挿入用クエリ
 	_, err = db.Exec("INSERT INTO threadMetaInfo (userID, title, ISBN) VALUES(?,?,?)", info.UserID, info.Title, info.ISBN)
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Bad Request")
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 
 	return c.JSON(http.StatusOK, info)
@@ -252,7 +252,7 @@ func PostThreadMessage(c echo.Context) error {
 	}
 
 	var threadMeta ThreadMetaInfo
-	// userIDがデータベースにあるか確認
+	// threadIDがデータベースにあるか確認
 	err = db.Get(&threadMeta, "SELECT userID, title, ISBN FROM threadMetaInfo WHERE id=?", threadID)
 	// threadIDが存在しなければBad request
 	if err != nil {
@@ -273,7 +273,7 @@ func PostThreadMessage(c echo.Context) error {
 	// 一件挿入用クエリ
 	_, err = db.Exec("INSERT INTO threadMessage (userID, message, threadID) VALUES(?,?,?)", info.UserID, info.Message, info.ThreadID)
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Bad Request")
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 
 	return c.JSON(http.StatusOK, info)
