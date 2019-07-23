@@ -2,11 +2,5 @@ comment: off
 
 coverage:
   status:
-    project:
-      target: auto
-      threshold: 30
-      base: auto
-    patch:
-      target: auto
-      threshold: 30
-      base: auto
+    project: off
+    patch: off
