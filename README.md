@@ -180,8 +180,8 @@ ISBNでの取得は、
 
 ## POSTリクエスト（本情報）
 
-POSTリクエストは、
-`$ curl -X POST -H "Content-Type: application/json" -d '{"ISBN":xxx, ...}' {ホストのIPアドレス}:8080/books`
+ユーザの本棚へのPOSTリクエストは、
+`$ curl -X POST -H "Content-Type: application/json" -d '{"ISBN":xxx, ...}' {ホストのIPアドレス}:8080/users/:userID/books`
 で行えます。
 
 登録が成功した場合、
@@ -192,8 +192,8 @@ POSTリクエストは、
 `Invalid Post Format`
 が返ります。
 
-もし詳細情報がすでに存在している場合、
-`Book info already exists`
+もしユーザがその本を既に登録している場合、
+`Book has already been registerd`
 が返ります。
 
 

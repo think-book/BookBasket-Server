@@ -63,6 +63,10 @@ var (
 	metaDataAfterPost = `[{"ISBN":100,"title":"cool book"},{"ISBN":200,"title":"awesome book"},{"ISBN":300,"title":"epic book"}]
 `
 
+	// POSTした後のGET確認データ(メタ情報)
+	metaDataForUserAfterPost = `[{"ISBN":300,"title":"epic book"}]
+`
+
 	// POSTした後のGET確認データ(詳細情報)
 	profileDataAfterPost = `{"ISBN":300,"title":"epic book","description":"funny"}
 `
@@ -116,7 +120,7 @@ var (
 	invalidUserID = `userID must be an integer`
 
 	// エラーメッセージ
-	bookInfoExists = `Book info already exists`
+	multipleRegistration = `Book has already been registerd`
 
 	// エラーメッセージ
 	noUser = `User doesn't exist`
@@ -303,7 +307,9 @@ func TestPostBookInfo(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books")
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("2")
 
 	// Assertions
 	if assert.NoError(t, PostBookInfo(c)) {
@@ -331,13 +337,31 @@ func TestAfterPostMetaData(t *testing.T) {
 	}
 }
 
+func TestAfterPostUserBooks(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("2")
+
+	// Assertions
+	if assert.NoError(t, GetBookMetaInfoForUser(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, metaDataForUserAfterPost, rec.Body.String())
+	}
+}
+
 func TestAfterPostProfileData(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books")
 	c.SetPath("/books/:ISBN")
 	c.SetParamNames("ISBN")
 	c.SetParamValues("300")
@@ -358,14 +382,36 @@ func TestPostBookInfoMultipleTimes(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books")
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("2")
 
 	// Assertions
 	if assert.NoError(t, PostBookInfo(c)) {
 		res := rec.Result()
 		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		assert.Equal(t, bookInfoExists, rec.Body.String())
+		assert.Equal(t, multipleRegistration, rec.Body.String())
+	}
+}
+
+func TestPostBookInfoMultipleTimesGlobal(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(bookInfoForPost))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("1")
+
+	// Assertions
+	if assert.NoError(t, PostBookInfo(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, postReturnBookInfo, rec.Body.String())
 	}
 }
 
@@ -376,7 +422,9 @@ func TestPostBookInfoWithInvalidArgument(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books")
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("1")
 
 	// Assertions
 	if assert.NoError(t, PostBookInfo(c)) {
@@ -394,7 +442,9 @@ func TestPostBookInfoWithInvalidButCloseArgument(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books")
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("1")
 
 	// Assertions
 	if assert.NoError(t, PostBookInfo(c)) {
@@ -412,7 +462,9 @@ func TestPostBookInfoWithBadArgument(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books")
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("1")
 
 	// Assertions
 	if assert.NoError(t, PostBookInfo(c)) {
@@ -423,6 +475,25 @@ func TestPostBookInfoWithBadArgument(t *testing.T) {
 	}
 }
 
+func TestPostBookInfoWithInvalidUserID(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(bookInfoForPost))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("a")
+
+	// Assertions
+	if assert.NoError(t, PostBookInfo(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidUserID, rec.Body.String())
+	}
+}
 func TestGetThreadTitles(t *testing.T) {
 	// Setup
 	e := echo.New()

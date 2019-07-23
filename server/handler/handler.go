@@ -177,11 +177,25 @@ func PostBookInfo(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
-	// 一件挿入用クエリ
-	_, err := db.Exec("INSERT INTO bookInfo (ISBN, title, description) VALUES(?,?,?)", info.ISBN, info.Title, info.Description)
-	// PRIMARY KEY(ISBN)がすでに存在した時（を想定）
+	// ユーザid取得
+	userID, err := strconv.Atoi(c.Param("userID"))
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Book info already exists")
+		// ユーザIDがintでなければBadRequestを返す
+		return c.String(http.StatusBadRequest, "userID must be an integer")
+	}
+
+	// 一件挿入用クエリ（ユーザと本の関係）
+	_, err = db.Exec("INSERT INTO userBookRelation (userID, ISBN) VALUES(?,?)", userID, info.ISBN)
+	// PRIMARY KEY(userID, ISBN)がすでに存在した時（を想定）
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Book has already been registerd")
+	}
+
+	// 一件挿入用クエリ（グローバルな本棚）
+	_, err = db.Exec("INSERT INTO bookInfo (ISBN, title, description) VALUES(?,?,?)", info.ISBN, info.Title, info.Description)
+	// PRIMARY KEY(ISBN)がすでに存在した時（を想定）。ユーザにとっては初めての登録のため、StatusOK
+	if err != nil {
+		return c.JSON(http.StatusOK, info)
 	}
 
 	return c.JSON(http.StatusOK, info)
