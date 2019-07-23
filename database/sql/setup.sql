@@ -17,12 +17,26 @@ INSERT INTO bookbasket.bookInfo (title, description, ISBN) VALUES(
     '200'
 );
 
+CREATE TABLE bookbasket.userBookRelation(
+    userID INT NOT NULL,
+    ISBN INT NOT NULL,
+    PRIMARY KEY(userID, ISBN)
+);
+
+INSERT INTO bookbasket.userBookRelation (userID, ISBN) VALUES(
+    '1',
+    '100'
+),
+(
+    '1',
+    '200'
+);
 
 CREATE TABLE bookbasket.threadMetaInfo(
     id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     userID INT,
     title VARCHAR(50),
-    ISBN INT 
+    ISBN INT
 );
 
 INSERT INTO bookbasket.threadMetaInfo (userID, title, ISBN) VALUES(
@@ -41,7 +55,7 @@ CREATE TABLE bookbasket.threadMessage(
     id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     userID INT,
     message TEXT,
-    threadID INT 
+    threadID INT
 );
 
 INSERT INTO bookbasket.threadMessage (userID, message, threadID) VALUES(
