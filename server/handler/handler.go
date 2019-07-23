@@ -113,6 +113,7 @@ func GetBookMetaInfoForUser(c echo.Context) error { //c をいじって Request,
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 
+	// userIDのユーザが本を一冊も登録していなかったとき（[]を返す）
 	if len(relation) == 0 {
 		return c.JSON(http.StatusOK, message)
 	}
