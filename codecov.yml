@@ -4,9 +4,9 @@ coverage:
   status:
     project:
       target: auto
-      threshold: null
+      threshold: 30
       base: auto
     patch:
       target: auto
-      threshold: null
+      threshold: 30
       base: auto
