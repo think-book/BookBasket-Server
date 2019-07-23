@@ -32,6 +32,7 @@ type (
 
 	// スレッドメタ情報
 	ThreadMetaInfo struct {
+		ID     int    `json:"id" db:"id"`
 		UserID int    `json:"userID" db:"userID"`
 		Title  string `json:"title" db:"title"`
 		ISBN   int    `json:"ISBN" db:"ISBN"`
@@ -142,7 +143,7 @@ func GetThreadTitles(c echo.Context) error {
 	message := []ThreadMetaInfo{}
 
 	//全件取得クエリ messageに結果をバインド
-	err = db.Select(&message, "SELECT userID, title, ISBN FROM threadMetaInfo WHERE ISBN=?", isbn)
+	err = db.Select(&message, "SELECT * FROM threadMetaInfo WHERE ISBN=?", isbn)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
@@ -226,6 +227,15 @@ func PostThreadTitle(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
+
+	// 挿入したレコードのid取得
+	var id int
+	err = db.Get(&id, "SELECT LAST_INSERT_ID()")
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	info.ID = id
 
 	return c.JSON(http.StatusOK, info)
 }

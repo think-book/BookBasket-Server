@@ -26,7 +26,7 @@ var (
 `
 
 	// GETThreadTitles用確認データ
-	threadTitlesTestData = `[{"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"userID":2,"title":"there is an awful typo on p.55","ISBN":100}]
+	threadTitlesTestData = `[{"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100}]
 `
 	// 空配列確認データ
 	emptyData = `[]
@@ -50,7 +50,7 @@ var (
 	postReturnBookInfo = `{"ISBN":300,"title":"epic book","description":"funny"}
 `
 	// スレッドタイトルPOST送信完了確認データ
-	postReturnThreadTitle = `{"userID":1,"title":"I don't understand ...","ISBN":100}
+	postReturnThreadTitle = `{"id":3,"userID":1,"title":"I don't understand ...","ISBN":100}
 `
 
 	// スレッドメッセージPOST送信完了確認データ
@@ -66,7 +66,7 @@ var (
 `
 
 	// POSTした後のGET確認データ（スレッドタイトル）
-	threadTitlesAfterPost = `[{"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"userID":2,"title":"there is an awful typo on p.55","ISBN":100},{"userID":1,"title":"I don't understand ...","ISBN":100}]
+	threadTitlesAfterPost = `[{"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100},{"id":3,"userID":1,"title":"I don't understand ...","ISBN":100}]
 `
 
 	// POSTした後のGET確認データ（スレッドメッセージ）
