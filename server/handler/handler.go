@@ -240,7 +240,7 @@ func PostThreadTitle(c echo.Context) error {
 	return c.JSON(http.StatusOK, info)
 }
 
-// PostThreadMessage スレッドタイトルPost用メソッド
+// PostThreadMessage スレッドメッセージPost用メソッド
 func PostThreadMessage(c echo.Context) error {
 	info := new(ThreadMessage)
 
