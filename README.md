@@ -204,7 +204,7 @@ POSTリクエストは、
 で行えます。
 
 登録が成功した場合、
-`{"userID":x,"title":"~","ISBN":xxx}\n`
+`{"id":x, "userID":x,"title":"~","ISBN":xxx}\n`
 が返ります。
 
 もしJSONがフォーマット通りでない場合、
