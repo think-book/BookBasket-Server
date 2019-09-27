@@ -6,21 +6,19 @@ BookBasket-Server
 
 # Overview
 
-メモリ上にあらかじめ格納された本情報をGETRequestで取得できます。
-POSTも実装しました。
-フォーラム情報のGETを実装しました。
-スレッドタイトル、スレッドメッセージのPOSTを実装しました。
+データベース上にある本情報のGET, POSTができます。
+フォーラム情報のGET, POSTができます。
 
 
 # Description
 
-メモリ上に以下のデータがあるので、これをGETRequestで取得できます。(ユーザ情報はまだ)
+データベース上に以下のデータがあるので、これをGETRequestで取得できます。(ユーザ情報はまだ)
 
 
 ### 本のデータ
 ```
-{"id": 1, "title": "cool book", "description": "A super hero beats monsters.", "ISBN": 100},
-{"id": 2, "title": "awesome book", "description": "A text book of go langage.", "ISBN": 200}
+{"ISBN": 100, "title": "cool book", "description": "A super hero beats monsters."},
+{"ISBN": 200, "title": "awesome book", "description": "A text book of go langage."}
 ```
 
 ### スレッドのデータ
@@ -55,22 +53,47 @@ Docker上で動きます。
 
 # Usage
 
+## サーバ
+
 docker-compose.ymlと同じ場所で、
 ```
 $ docker-compose up --build
 ```
-でdocker上にサーバが立ち上がります。
+でdocker上にサーバとmysqlサーバが立ち上がります。
 
-ホスト側の8080番ポートでアクセスできます。
+サーバはホスト側の8080番ポートでアクセスできます。
 
-`$ docker-compose down`
-でコンテナ終了
+`$ docker-compose down -v`
+でデータベース初期化してコンテナ終了
+(-v しないとvolumeがどんどん溜まっていく)
+
+データベースを初期化しない場合は、
+
+`$ docker-compose stop`
+
+## テスト
+
+mysqlのコンテナ立ち上げ（buildは初回のみ）
+```
+$ docker build -t (イメージのタグ名) (database/ の場所)
+$ docker run --name (コンテナ名) -p 3306:3306 (イメージのタグ名)
+```
+
+mysqlサーバを立ち上げたら、ローカルマシンのserver/で、
+`$ go test -v ./...`
+でテスト実行
+
+データベースを初期化してmysqlサーバを終了するには(データベース初期化しないなら、stopだけでOK)、
+```
+$ docker stop -v (コンテナ名)
+$ docker rm (コンテナ名)
+```
 
 
 ## POSTフォーマット
 
 ### 本情報
-`{"title":"~","ISBN":xxx,"description":"~"}`
+`{"ISBN":xxx,"title":"~","description":"~"}`
 
 ### スレッドタイトル
 `{"userID":xxx,"title":"~"}`
@@ -87,8 +110,10 @@ $ docker-compose up --build
 `$ curl {ホストのIPアドレス}:8080/books`
 で
 ```
-{"id": 1, "title": "cool book", "ISBN": 100},
-{"id": 2, "title": "awesome book", "ISBN": 200}
+[
+    {"ISBN": 100, "title": "cool book"},
+    {"ISBN": 200, "title": "awesome book"}
+]
 ```
 が取得できる。
 
@@ -123,11 +148,11 @@ ISBNでの取得は、
 ## POSTリクエスト（本情報）
 
 POSTリクエストは、
-`$ curl -X POST -H "Content-Type: application/json" -d '{"title":"~", ...}' {ホストのIPアドレス}:8080/books`
+`$ curl -X POST -H "Content-Type: application/json" -d '{"ISBN":xxx, ...}' {ホストのIPアドレス}:8080/books`
 で行えます。
 
 登録が成功した場合、
-`{"id":x,"title":"~","description":"~","ISBN":xxx}\n`
+`{"ISBN":xxx,"title":"~","description":"~"}\n`
 が返ります。
 
 もしJSONがフォーマット通りでない場合、
@@ -146,7 +171,7 @@ POSTリクエストは、
 で行えます。
 
 登録が成功した場合、
-`{"id":x,"userID":x,"title":"~","ISBN":xxx}\n`
+`{"id":x, "userID":x,"title":"~","ISBN":xxx}\n`
 が返ります。
 
 もしJSONがフォーマット通りでない場合、
@@ -169,7 +194,7 @@ POSTリクエストは、
 で行えます。
 
 登録が成功した場合、
-`{"id":x,"userID":x,"message":"~","threadID":xxx}\n`
+`{"userID":x,"message":"~","threadID":xxx}\n`
 が返ります。
 
 もしJSONがフォーマット通りでない場合、

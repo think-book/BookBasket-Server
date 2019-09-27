@@ -7,6 +7,10 @@ executors:
         environment:
           - GO111MODULE: "on"
           - GOCACHE: "/tmp/go/cache"
+      - image: circleci/mysql:5.7
+        environment:
+          MYSQL_ROOT_PASSWORD: root
+          TZ: "Asia/Tokyo"
     working_directory: ~/workspace
 
 commands:
@@ -15,12 +19,12 @@ commands:
       - restore_cache:
           name: Restore go modules cache
           keys:
-            - go-mod-v1-{{ checksum "go.sum" }}
+            - go-mod-v1-{{ checksum "./server/go.sum" }}
   save_mod_cache:
     steps:
       - save_cache:
           name: Save go modules cache
-          key: go-mod-v1-{{ checksum "go.sum" }}
+          key: go-mod-v1-{{ checksum "./server/go.sum" }}
           paths:
             - /go/pkg/mod
   restore_build_cache:
@@ -61,7 +65,9 @@ jobs:
           name: GolangCI-Lint version
           command: ./bin/golangci-lint --version
       - run:
-          command: ./bin/golangci-lint run
+          command: |
+            cd ./server
+            ../bin/golangci-lint run
   build:
     executor: default
     steps:
@@ -69,7 +75,9 @@ jobs:
       - restore_mod_cache
       - restore_build_cache
       - run:
-          command: go build -v
+          command: |
+            cd ./server
+            go build -v
       - save_build_cache
   test:
     executor: default
@@ -78,8 +86,29 @@ jobs:
       - restore_mod_cache
       - restore_build_cache
       - run:
+      # Our primary container isn't MYSQL so run a sleep command until it's ready.
+          name: Waiting for MySQL to be ready
+          command: |
+            for i in `seq 1 10`;
+            do
+              nc -z 127.0.0.1 3306 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for MySQL && exit 1
+      - run:
+          name: Install MySQL CLI; Import dummy data
+          command: |
+            sudo apt-get install mysql-client
+            mysql --version
+            mysql -h 127.0.0.1 -u root -proot < ./database/sql/setup.sql
+      - run:
           name: Run go tests
-          command: go test ./... -race -coverprofile=coverage.txt -covermode=atomic
+          command: |
+            cd ./server
+            go test ./... -race -coverprofile=coverage.txt -covermode=atomic
+            mv ./coverage.txt ..
+            cd ..
       - run:
           name: Upload coverage results to Codecov
           command: bash <(curl -s https://codecov.io/bash)

@@ -1,11 +1,23 @@
 package main
 
 import (
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
 	"github.com/think-book/BookBasket-Server/handler"
 )
 
 func main() {
+	// mysqlに接続
+	db, err := sqlx.Open("mysql", "root:root@tcp(my_db:3306)/bookbasket")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	// handlerにデータベースの参照を渡す。
+	handler.SetDB(db)
+
 	// Echoのインスタンス作る
 	e := echo.New()
 

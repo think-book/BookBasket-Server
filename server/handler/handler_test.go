@@ -3,9 +3,12 @@ package handler
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 )
@@ -15,7 +18,7 @@ var (
 	// GET用
 
 	// GetBookMetaInfoAll用確認データ
-	metaInfoTestData = `[{"id":1,"title":"cool book","ISBN":100},{"id":2,"title":"awesome book","ISBN":200}]
+	metaInfoTestData = `[{"ISBN":100,"title":"cool book"},{"ISBN":200,"title":"awesome book"}]
 `
 
 	// GetBookProfile用確認データ
@@ -29,7 +32,7 @@ var (
 	emptyData = `[]
 `
 	// GETThreadMessages用確認データ
-	threadMessagesTestData = `[{"id":1,"userID":11,"message":"Me neither.","threadID":1},{"id":2,"userID":12,"message":"I think the author tries to say ...","threadID":1}]
+	threadMessagesTestData = `[{"userID":11,"message":"Me neither.","threadID":1},{"userID":12,"message":"I think the author tries to say ...","threadID":1}]
 `
 
 	// POST用
@@ -44,18 +47,18 @@ var (
 	threadMessageForPost = `{"userID":1,"message":"Maybe it's because ..."}`
 
 	// 本情報POST送信完了確認データ
-	postReturnBookInfo = `{"id":3,"title":"epic book","description":"funny","ISBN":300}
+	postReturnBookInfo = `{"ISBN":300,"title":"epic book","description":"funny"}
 `
 	// スレッドタイトルPOST送信完了確認データ
 	postReturnThreadTitle = `{"id":3,"userID":1,"title":"I don't understand ...","ISBN":100}
 `
 
 	// スレッドメッセージPOST送信完了確認データ
-	postReturnThreadMessage = `{"id":3,"userID":1,"message":"Maybe it's because ...","threadID":1}
+	postReturnThreadMessage = `{"userID":1,"message":"Maybe it's because ...","threadID":1}
 `
 
 	// POSTした後のGET確認データ(メタ情報)
-	metaDataAfterPost = `[{"id":1,"title":"cool book","ISBN":100},{"id":2,"title":"awesome book","ISBN":200},{"id":3,"title":"epic book","ISBN":300}]
+	metaDataAfterPost = `[{"ISBN":100,"title":"cool book"},{"ISBN":200,"title":"awesome book"},{"ISBN":300,"title":"epic book"}]
 `
 
 	// POSTした後のGET確認データ(詳細情報)
@@ -67,7 +70,7 @@ var (
 `
 
 	// POSTした後のGET確認データ（スレッドメッセージ）
-	threadMessagesAfterPost = `[{"id":1,"userID":11,"message":"Me neither.","threadID":1},{"id":2,"userID":12,"message":"I think the author tries to say ...","threadID":1},{"id":3,"userID":1,"message":"Maybe it's because ...","threadID":1}]
+	threadMessagesAfterPost = `[{"userID":11,"message":"Me neither.","threadID":1},{"userID":12,"message":"I think the author tries to say ...","threadID":1},{"userID":1,"message":"Maybe it's because ...","threadID":1}]
 `
 
 	// ダメなPOST
@@ -119,6 +122,24 @@ var (
 	// エラーメッセージ
 	noThread = `Thread doesn't exist`
 )
+
+func TestMain(m *testing.M) {
+
+	// mysqlに接続
+	db, err := sqlx.Open("mysql", "root:root@tcp(127.0.0.1:3306)/bookbasket")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	// handlerにデータベースの参照を渡す。
+	SetDB(db)
+
+	// 全テスト実行
+	code := m.Run()
+
+	os.Exit(code)
+}
 
 func TestGetAll(t *testing.T) {
 	// Setup
