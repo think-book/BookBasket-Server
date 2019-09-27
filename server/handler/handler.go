@@ -17,6 +17,12 @@ type (
 		Description string `json:"description" db:"description"`
 	}
 
+	// 本とユーザの関係用構造体
+	UserBookRelation struct {
+		UserID int `db:"userID"`
+		ISBN   int `db:"ISBN"`
+	}
+
 	// 本メタ情報用構造体（GET用）
 	BookMetaInfo struct {
 		ISBN  int    `json:"ISBN" db:"ISBN"`
@@ -78,6 +84,66 @@ func GetBookMetaInfoAll(c echo.Context) error { //c をいじって Request, Res
 	return c.JSON(http.StatusOK, message)
 }
 
+// GetBookMetaInfoForUser ユーザの本情報全取得
+func GetBookMetaInfoForUser(c echo.Context) error { //c をいじって Request, Responseを色々する
+
+	// message（bookMetaInfo配列） にメタ情報を格納
+	message := []BookMetaInfo{}
+
+	// ユーザid取得
+	userID, err := strconv.Atoi(c.Param("userID"))
+	if err != nil {
+		// ユーザIDがintでなければBadRequestを返す
+		return c.String(http.StatusBadRequest, "userID must be an integer")
+	}
+
+	var user UserInfo
+	// userIDがデータベースにあるか確認
+	err = db.Get(&user, "SELECT * FROM userInfo WHERE id=?", userID)
+	// ユーザが存在しなければBad request
+	if err != nil {
+		return c.String(http.StatusBadRequest, "User doesn't exist")
+	}
+
+	// ユーザと本の関係を入れる用
+	relation := []UserBookRelation{}
+
+	//userIDのユーザが登録している本のISBN全件取得クエリ relationに結果をバインド
+	err = db.Select(&relation, "SELECT * FROM userBookRelation WHERE userID=?", userID)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	// userIDのユーザが本を一冊も登録していなかったとき（[]を返す）
+	if len(relation) == 0 {
+		return c.JSON(http.StatusOK, message)
+	}
+
+	// relationからISBNだけ抜き取る
+	ISBNs := []int{}
+	for _, r := range relation {
+		ISBNs = append(ISBNs, r.ISBN)
+	}
+
+	//本取得クエリを生成するための処理
+	//query: where inを含んだ新しいクエリ
+	//args : 引数
+	query, args, err := sqlx.In("SELECT ISBN, title FROM bookInfo WHERE ISBN IN (?)", ISBNs)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+	// mysql用にクエリをリバインド？（っぽい）
+	query = db.Rebind(query)
+
+	//全件取得クエリ messageに結果をバインド
+	err = db.Select(&message, query, args...)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	return c.JSON(http.StatusOK, message)
+}
+
 //GetBookProfile 本情報１件取得
 func GetBookProfile(c echo.Context) error {
 	// urlのisbn取得
@@ -112,11 +178,25 @@ func PostBookInfo(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
-	// 一件挿入用クエリ
-	_, err := db.Exec("INSERT INTO bookInfo (ISBN, title, description) VALUES(?,?,?)", info.ISBN, info.Title, info.Description)
-	// PRIMARY KEY(ISBN)がすでに存在した時（を想定）
+	// ユーザid取得
+	userID, err := strconv.Atoi(c.Param("userID"))
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Book info already exists")
+		// ユーザIDがintでなければBadRequestを返す
+		return c.String(http.StatusBadRequest, "userID must be an integer")
+	}
+
+	// 一件挿入用クエリ（ユーザと本の関係）
+	_, err = db.Exec("INSERT INTO userBookRelation (userID, ISBN) VALUES(?,?)", userID, info.ISBN)
+	// PRIMARY KEY(userID, ISBN)がすでに存在した時（を想定）
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Book has already been registerd")
+	}
+
+	// 一件挿入用クエリ（グローバルな本棚）
+	_, err = db.Exec("INSERT INTO bookInfo (ISBN, title, description) VALUES(?,?,?)", info.ISBN, info.Title, info.Description)
+	// PRIMARY KEY(ISBN)がすでに存在した時（を想定）。ユーザにとっては初めての登録のため、StatusOK
+	if err != nil {
+		return c.JSON(http.StatusOK, info)
 	}
 
 	return c.JSON(http.StatusOK, info)

@@ -20,7 +20,9 @@ var (
 	// GetBookMetaInfoAll用確認データ
 	metaInfoTestData = `[{"ISBN":100,"title":"cool book"},{"ISBN":200,"title":"awesome book"}]
 `
-
+	// GetBookMetaInfoForUser用確認データ
+	userBookTestData = `[{"ISBN":100,"title":"cool book"},{"ISBN":200,"title":"awesome book"}]
+`
 	// GetBookProfile用確認データ
 	bookProfileTestData = `{"ISBN":100,"title":"cool book","description":"A super hero beats monsters."}
 `
@@ -59,6 +61,10 @@ var (
 
 	// POSTした後のGET確認データ(メタ情報)
 	metaDataAfterPost = `[{"ISBN":100,"title":"cool book"},{"ISBN":200,"title":"awesome book"},{"ISBN":300,"title":"epic book"}]
+`
+
+	// POSTした後のGET確認データ(メタ情報)
+	metaDataForUserAfterPost = `[{"ISBN":300,"title":"epic book"}]
 `
 
 	// POSTした後のGET確認データ(詳細情報)
@@ -111,7 +117,10 @@ var (
 	invalidISBN = `ISBN must be an integer`
 
 	// エラーメッセージ
-	bookInfoExists = `Book info already exists`
+	invalidUserID = `userID must be an integer`
+
+	// エラーメッセージ
+	multipleRegistration = `Book has already been registerd`
 
 	// エラーメッセージ
 	noUser = `User doesn't exist`
@@ -155,6 +164,82 @@ func TestGetAll(t *testing.T) {
 		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, metaInfoTestData, rec.Body.String())
+	}
+}
+
+func TestGetBookMetaInfoForUser(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("1")
+
+	// Assertions
+	if assert.NoError(t, GetBookMetaInfoForUser(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, userBookTestData, rec.Body.String())
+	}
+}
+
+func TestGetBookMetaInfoForUserWithInvalidUserID(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("a")
+
+	// Assertions
+	if assert.NoError(t, GetBookMetaInfoForUser(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidUserID, rec.Body.String())
+	}
+}
+
+func TestGetBookMetaInfoForUserMissingUser(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("5")
+
+	// Assertions
+	if assert.NoError(t, GetBookMetaInfoForUser(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, noUser, rec.Body.String())
+	}
+}
+
+func TestGetBookMetaInfoForUserWithEmptyResponse(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("2")
+
+	// Assertions
+	if assert.NoError(t, GetBookMetaInfoForUser(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, emptyData, rec.Body.String())
 	}
 }
 
@@ -222,7 +307,9 @@ func TestPostBookInfo(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books")
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("2")
 
 	// Assertions
 	if assert.NoError(t, PostBookInfo(c)) {
@@ -250,13 +337,31 @@ func TestAfterPostMetaData(t *testing.T) {
 	}
 }
 
+func TestAfterPostUserBooks(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("2")
+
+	// Assertions
+	if assert.NoError(t, GetBookMetaInfoForUser(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, metaDataForUserAfterPost, rec.Body.String())
+	}
+}
+
 func TestAfterPostProfileData(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books")
 	c.SetPath("/books/:ISBN")
 	c.SetParamNames("ISBN")
 	c.SetParamValues("300")
@@ -277,14 +382,36 @@ func TestPostBookInfoMultipleTimes(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books")
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("2")
 
 	// Assertions
 	if assert.NoError(t, PostBookInfo(c)) {
 		res := rec.Result()
 		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		assert.Equal(t, bookInfoExists, rec.Body.String())
+		assert.Equal(t, multipleRegistration, rec.Body.String())
+	}
+}
+
+func TestPostBookInfoMultipleTimesGlobal(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(bookInfoForPost))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("1")
+
+	// Assertions
+	if assert.NoError(t, PostBookInfo(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, postReturnBookInfo, rec.Body.String())
 	}
 }
 
@@ -295,7 +422,9 @@ func TestPostBookInfoWithInvalidArgument(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books")
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("1")
 
 	// Assertions
 	if assert.NoError(t, PostBookInfo(c)) {
@@ -313,7 +442,9 @@ func TestPostBookInfoWithInvalidButCloseArgument(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books")
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("1")
 
 	// Assertions
 	if assert.NoError(t, PostBookInfo(c)) {
@@ -331,7 +462,9 @@ func TestPostBookInfoWithBadArgument(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/books")
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("1")
 
 	// Assertions
 	if assert.NoError(t, PostBookInfo(c)) {
@@ -342,6 +475,25 @@ func TestPostBookInfoWithBadArgument(t *testing.T) {
 	}
 }
 
+func TestPostBookInfoWithInvalidUserID(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(bookInfoForPost))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/users/:userID/books")
+	c.SetParamNames("userID")
+	c.SetParamValues("a")
+
+	// Assertions
+	if assert.NoError(t, PostBookInfo(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, invalidUserID, rec.Body.String())
+	}
+}
 func TestGetThreadTitles(t *testing.T) {
 	// Setup
 	e := echo.New()
@@ -593,7 +745,7 @@ func TestPostThreadTitleWithInvalidISBN(t *testing.T) {
 	}
 }
 
-func TestPostThreadTitleWithMissingBook(t *testing.T) {
+func TestPostThreadTitleWithBook(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(threadTitleForPost))
@@ -613,7 +765,7 @@ func TestPostThreadTitleWithMissingBook(t *testing.T) {
 	}
 }
 
-func TestPostThreadTitleWithMissingUser(t *testing.T) {
+func TestPostThreadTitleWithUser(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(threadTitleMissingUser))
@@ -732,7 +884,7 @@ func TestPostThreadTitleWithInvalidThreadID(t *testing.T) {
 	}
 }
 
-func TestPostThreadMessageWithMissingThread(t *testing.T) {
+func TestPostThreadMessageMissingThread(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(threadMessageForPost))
@@ -752,7 +904,7 @@ func TestPostThreadMessageWithMissingThread(t *testing.T) {
 	}
 }
 
-func TestPostThreadMessageWithMissingUser(t *testing.T) {
+func TestPostThreadMessageMissingUser(t *testing.T) {
 	// Setup
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(threadMessageMissingUser))

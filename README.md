@@ -23,15 +23,15 @@ BookBasket-Server
 
 ### スレッドのデータ
 
-#### メタ情報
+#### スレッドタイトル
 ISBN:100の本に対するスレッドのタイトルリスト
 ```
 {"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},
 {"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100}
 ```
 
-#### 発言情報
-threadID:1のスレッドタイトル（上のメタ情報のid = 1のもの）に対するスレッドの発言リスト
+#### スレッドメッセージ
+threadID:1のスレッドタイトル（上のメタ情報のid = 1のもの）に対するスレッドのメッセージリスト
 ```
 {"id":1,"userID":11,"message":"Me neither.","threadID":1},
 {"id":2,"userID":12,"message":"I think the author tries to say ...","threadID":1}
@@ -46,6 +46,13 @@ threadID:1のスレッドタイトル（上のメタ情報のid = 1のもの）�
 {"id":12, "userName":"Charlie", "password": "tyui"}
 ```
 
+### ユーザと本の関係
+
+```
+{"userID":1, "ISBN":100},
+{"userID":1, "ISBN":200}
+```
+つまりuserID=1のユーザ（Alice）がISBN=(100,200)の本を登録している状態
 
 # Requirement
 
@@ -106,7 +113,8 @@ $ docker rm (コンテナ名)
 # Example
 
 ## GET リクエスト(本情報)
-サーバ立ち上げ後、
+
+### グローバルな本情報の取得
 `$ curl {ホストのIPアドレス}:8080/books`
 で
 ```
@@ -117,6 +125,7 @@ $ docker rm (コンテナ名)
 ```
 が取得できる。
 
+### ISBNでの本の詳細情報取得
 ISBNでの取得は、
 `$ curl {ホストのIPアドレス}:8080/books/:ISBN`
 の書式
@@ -128,9 +137,33 @@ ISBNでの取得は、
 が取得できる。
 
 `$ curl {ホストのIPアドレス}:8080/books/300`
-は、対応するISBNの本を登録していなければ、
+は、ISBN = 300の本を登録していなければ、
 `Not Found`
 が返ります。
+
+### 特定のユーザの本情報の取得
+`$ curl {ホストのIPアドレス}:8080/users/:userID/books`
+の書式で取得できる。
+
+例えば、
+`$ curl {ホストのIPアドレス}:8080/users/1/books`
+で
+```
+[
+    {"ISBN": 100, "title": "cool book"},
+    {"ISBN": 200, "title": "awesome book"}
+]
+```
+が取得できます。
+
+ユーザが本を登録していなければ、
+`[]`
+が返ります。
+
+指定したuserIDのユーザが存在しなければ、
+`User doesn't exist`
+が返ります。
+
 
 ## GET リクエスト(フォーラム情報)
 あるISBNの本のスレッドタイトルのリストを取得する場合、
@@ -147,8 +180,8 @@ ISBNでの取得は、
 
 ## POSTリクエスト（本情報）
 
-POSTリクエストは、
-`$ curl -X POST -H "Content-Type: application/json" -d '{"ISBN":xxx, ...}' {ホストのIPアドレス}:8080/books`
+ユーザの本棚へのPOSTリクエストは、
+`$ curl -X POST -H "Content-Type: application/json" -d '{"ISBN":xxx, ...}' {ホストのIPアドレス}:8080/users/:userID/books`
 で行えます。
 
 登録が成功した場合、
@@ -159,8 +192,8 @@ POSTリクエストは、
 `Invalid Post Format`
 が返ります。
 
-もし詳細情報がすでに存在している場合、
-`Book info already exists`
+もしユーザがその本を既に登録している場合、
+`Book has already been registerd`
 が返ります。
 
 
