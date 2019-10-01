@@ -3,12 +3,23 @@ package main
 import (
 	"github.com/labstack/echo"
 	"github.com/think-book/BookBasket-Server/handler"
+
+	//Localhost　からアクセスする用
+	"net/http"
+	"github.com/labstack/echo/middleware"
 )
 
 func main() {
 	// Echoのインスタンス作る
 	e := echo.New()
 
+	// 異なるプラットフォームからのアクセスを許可
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	  }))
+	  
 	// ルーティング
 	e.GET("/books", handler.GetBookMetaInfoAll)
 	e.GET("/books/:ISBN", handler.GetBookProfile)
