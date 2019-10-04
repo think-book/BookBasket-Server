@@ -34,14 +34,14 @@ type (
 	// スレッドメタ情報
 	ThreadMetaInfo struct {
 		ID     int    `json:"id" db:"id"`
-		UserID int    `json:"userID" db:"userID"`
+		UserID string    `json:"userID" db:"userID"`
 		Title  string `json:"title" db:"title"`
 		ISBN   int    `json:"ISBN" db:"ISBN"`
 	}
 
 	// スレッド発言情報
 	ThreadMessage struct {
-		UserID   int    `json:"userID" db:"userID"`
+		UserID   string    `json:"userID" db:"userID"`
 		Message  string `json:"message" db:"message"`
 		ThreadID int    `json:"threadID" db:"threadID"`
 	}
@@ -204,7 +204,7 @@ func PostThreadTitle(c echo.Context) error {
 	}
 
 	// ポストメッセージのフォーマットが不正
-	if info.Title == "" || info.UserID == 0 {
+	if info.Title == "" || info.UserID == "" {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
@@ -262,7 +262,7 @@ func PostThreadMessage(c echo.Context) error {
 	}
 
 	// ポストメッセージのフォーマットが不正
-	if info.UserID == 0 || info.Message == "" {
+	if info.UserID == "" || info.Message == "" {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
