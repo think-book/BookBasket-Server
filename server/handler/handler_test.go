@@ -26,13 +26,13 @@ var (
 `
 
 	// GETThreadTitles用確認データ
-	threadTitlesTestData = `[{"id":1,"userID":Alice,"title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":Bob,"title":"there is an awful typo on p.55","ISBN":100}]
+	threadTitlesTestData = `[{"id":1,"userID":"Alice","title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":"Bob","title":"there is an awful typo on p.55","ISBN":100}]
 `
 	// 空配列確認データ
 	emptyData = `[]
 `
 	// GETThreadMessages用確認データ
-	threadMessagesTestData = `[{"userID":Carol,"message":"Me neither.","threadID":1},{"userID":Charlie,"message":"I think the author tries to say ...","threadID":1}]
+	threadMessagesTestData = `[{"userID":"Carol","message":"Me neither.","threadID":1},{"userID":"Charlie","message":"I think the author tries to say ...","threadID":1}]
 `
 
 	// POST用
@@ -41,20 +41,20 @@ var (
 	bookInfoForPost = `{"title":"epic book","ISBN":300,"description":"funny"}`
 
 	// POST送信用スレッドタイトル
-	threadTitleForPost = `{"userID":Alice,"title":"I don't understand ..."}`
+	threadTitleForPost = `{"userID":"Alice","title":"I don't understand ..."}`
 
 	// POST送信用スレッドメッセージ
-	threadMessageForPost = `{"userID":Alice,"message":"Maybe it's because ..."}`
+	threadMessageForPost = `{"userID":"Alice","message":"Maybe it's because ..."}`
 
 	// 本情報POST送信完了確認データ
 	postReturnBookInfo = `{"ISBN":300,"title":"epic book","description":"funny"}
 `
 	// スレッドタイトルPOST送信完了確認データ
-	postReturnThreadTitle = `{"id":3,"userID":Alice,"title":"I don't understand ...","ISBN":100}
+	postReturnThreadTitle = `{"id":3,"userID":"Alice","title":"I don't understand ...","ISBN":100}
 `
 
 	// スレッドメッセージPOST送信完了確認データ
-	postReturnThreadMessage = `{"userID":Alice,"message":"Maybe it's because ...","threadID":1}
+	postReturnThreadMessage = `{"userID":"Alice","message":"Maybe it's because ...","threadID":1}
 `
 
 	// POSTした後のGET確認データ(メタ情報)
@@ -66,11 +66,11 @@ var (
 `
 
 	// POSTした後のGET確認データ（スレッドタイトル）
-	threadTitlesAfterPost = `[{"id":1,"userID":Alice,"title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":Bob,"title":"there is an awful typo on p.55","ISBN":100},{"id":3,"userID":1,"title":"I don't understand ...","ISBN":100}]
+	threadTitlesAfterPost = `[{"id":1,"userID":"Alice","title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":"Bob","title":"there is an awful typo on p.55","ISBN":100},{"id":3,"userID":"Alice","title":"I don't understand ...","ISBN":100}]
 `
 
 	// POSTした後のGET確認データ（スレッドメッセージ）
-	threadMessagesAfterPost = `[{"userID":Carol,"message":"Me neither.","threadID":1},{"userID":Charlie,"message":"I think the author tries to say ...","threadID":1},{"userID":Alice,"message":"Maybe it's because ...","threadID":1}]
+	threadMessagesAfterPost = `[{"userID":"Carol","message":"Me neither.","threadID":1},{"userID":"Charlie","message":"I think the author tries to say ...","threadID":1},{"userID":"Alice","message":"Maybe it's because ...","threadID":1}]
 `
 
 	// ダメなPOST
@@ -83,10 +83,10 @@ var (
 	badPostData = `hello world`
 
 	// ユーザがいないスレッドタイトル
-	threadTitleMissingUser = `{"userID":100,"title":"foo"}`
+	threadTitleMissingUser = `{"userID":"100","title":"foo"}`
 
 	// ユーザがいないスレッドメッセージ
-	threadMessageMissingUser = `{"userID":100,"message":"foo"}`
+	threadMessageMissingUser = `{"userID":"100","message":"foo"}`
 
 	// ヘッダ
 
