@@ -6,6 +6,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
+	//"golang.org/x/crypto/bcrypt"
 )
 
 type (
@@ -47,9 +48,13 @@ type (
 
 	// ユーザ情報
 	UserInfo struct {
-		ID       int    `json:"id" db:"id"`
-		UserName string `json:"userName" db:"userName"`
+		UserID string `json:"userID" db:"id"` // ユニーク
 		Password string `json:"password" db:"password"`
+	}
+
+	// ユーザ情報(返り値用)
+	UserInfoReturn struct {
+		UserID string `json:"userID" db:"id"` // ユニーク
 	}
 )
 
@@ -288,4 +293,35 @@ func PostThreadMessage(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, info)
 
+}
+
+// RegisterUser ユーザ登録用メソッド
+func RegisterUser(c echo.Context) error {
+	info := new(UserInfo)
+
+	// request bodyをUserInfo構造体にバインド
+	if err := c.Bind(info); err != nil {
+		return c.String(http.StatusBadRequest, "Invalid Post Format")
+	}
+
+	// ポストメッセージのフォーマットが不正
+	if info.UserID == "" || info.Password == "" /*|| 正規表現で弾く*/ {
+		return c.String(http.StatusBadRequest, "Invalid Post Format")
+	}
+
+	// パスワード暗号化
+	info.Password = "NewPass"
+
+	// 一件挿入用クエリ
+	_, err := db.Exec("INSERT INTO UserInfo (id, password) VALUES(?,?)", info.UserID, info.Password)
+	// PRIMARY KEY(UserID)がすでに存在した時（を想定）
+	if err != nil {
+		return c.String(http.StatusBadRequest, "User ID already exists")
+	}
+
+	var message UserInfoReturn
+
+	message.UserID = info.UserID
+
+	return c.JSON(http.StatusOK, message)
 }

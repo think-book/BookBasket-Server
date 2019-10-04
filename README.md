@@ -85,8 +85,8 @@ mysqlサーバを立ち上げたら、ローカルマシンのserver/で、
 
 データベースを初期化してmysqlサーバを終了するには(データベース初期化しないなら、stopだけでOK)、
 ```
-$ docker stop -v (コンテナ名)
-$ docker rm (コンテナ名)
+$ docker stop (コンテナ名)
+$ docker rm -v (コンテナ名)
 ```
 
 
