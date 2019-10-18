@@ -8379,7 +8379,7 @@ VU:function(a,b,c){return Z.a4I(a,b,c)},
 a4I:function(a,b,c){var u=0,t=P.V(Z.jz),s=[],r,q,p,o,n,m
 var $async$VU=P.R(function(d,e){if(d===1)return P.S(e,t)
 while(true)switch(u){case 0:m=new U.ek()
-m.b="http://localhost:8080"
+m.b="https://thinkbook.itsp.club"
 m.a=new O.eo(P.bH(W.bW))
 r=m
 q=new Z.jz(C.j.h(b),c)
@@ -24084,7 +24084,7 @@ t=F.aW(r.c,!1).a
 s=[N.aQ]
 return M.iZ(C.H,!0,T.iz(H.d([T.dz(C.ay,H.d([o,p,T.jd(q,L.bI(r.f,q,q,q,A.eP(q,q,C.a9,q,q,q,q,q,q,q,q,22,q,q,q,q,!0,q,q,q,q,q,q),q),q,q,20,t.a*0.3,u.b*0.15,q)],s),C.aO),r.te()],s),C.bD,C.be,C.bv,C.bl),C.a8,q,0,q,q,q,C.bf)},
 te:function(){var u=this,t=null,s=new U.ek()
-s.b="http://localhost:8080"
+s.b="https://thinkbook.itsp.club"
 s.a=new O.eo(P.bH(W.bW))
 return A.UB(T.iz(H.d([E.mL(!0,t,C.q2,t,1,new T.yu(u),t,new T.yv()),E.mL(!0,t,C.q3,t,1,new T.yw(u),t,new T.yx()),E.mL(!0,t,C.q6,t,1,new T.yy(u),t,new T.yz()),new T.cj(C.kC,D.Y3(C.mA,new P.y(4288371407),new T.yA(u,s)),t)],[N.aQ]),C.bD,C.be,C.bv,C.bl),u.r)},
 $aP:function(){return[T.oN]}}
@@ -24167,7 +24167,7 @@ return M.iZ(C.H,!0,T.iz(H.d([T.dz(C.ay,H.d([t,u,T.jd(n,L.bI(s,n,n,n,A.eP(n,n,C.a
 jP:function(){var u=0,t=P.V(null),s=this,r,q
 var $async$jP=P.R(function(a,b){if(a===1)return P.S(b,t)
 while(true)switch(u){case 0:r=new U.ek()
-r.b="http://localhost:8080"
+r.b="https://thinkbook.itsp.club"
 r.a=new O.eo(P.bH(W.bW))
 q=R
 u=2
@@ -24178,7 +24178,7 @@ return P.U($async$jP,t)},
 jM:function(){var u=0,t=P.V(null),s=this,r,q
 var $async$jM=P.R(function(a,b){if(a===1)return P.S(b,t)
 while(true)switch(u){case 0:r=new U.ek()
-r.b="http://localhost:8080"
+r.b="https://thinkbook.itsp.club"
 r.a=new O.eo(P.bH(W.bW))
 q=R
 u=2
@@ -24225,7 +24225,7 @@ return T.dz(C.ay,H.d([new T.cj(C.pA,new B.D6(new B.KH(2,0,0,1),new G.KE(!0,!0,!0
 lm:function(){var u=0,t=P.V(null),s=this,r,q
 var $async$lm=P.R(function(a,b){if(a===1)return P.S(b,t)
 while(true)switch(u){case 0:r=new U.ek()
-r.b="http://localhost:8080"
+r.b="https://thinkbook.itsp.club"
 r.a=new O.eo(P.bH(W.bW))
 q=B
 u=2
@@ -24284,7 +24284,7 @@ mJ:function(a){return this.KD(a)},
 KD:function(a){var u=0,t=P.V(null),s=1,r,q=[],p=this,o,n,m,l,k,j,i
 var $async$mJ=P.R(function(b,c){if(b===1){r=c
 u=s}while(true)switch(u){case 0:j=new U.ek()
-j.b="http://localhost:8080"
+j.b="https://thinkbook.itsp.club"
 j.a=new O.eo(P.bH(W.bW))
 o=j
 n=new V.lF(1,a)
@@ -24310,7 +24310,7 @@ return P.U($async$mJ,t)},
 kl:function(){var u=0,t=P.V(null),s=this,r,q
 var $async$kl=P.R(function(a,b){if(a===1)return P.S(b,t)
 while(true)switch(u){case 0:r=new U.ek()
-r.b="http://localhost:8080"
+r.b="https://thinkbook.itsp.club"
 r.a=new O.eo(P.bH(W.bW))
 q=V
 u=2
