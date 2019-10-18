@@ -5,13 +5,10 @@ services:
     depends_on:
       - "db"
     ports:
-      - "8080:8080"
+      - "8080:80"
     entrypoint: ./wait-for-it.sh db:3306 -- ./server
   db:
     build: ./database
     container_name: my_db
     ports:
       - "3306:3306"
-    
-    
-  
