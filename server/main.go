@@ -23,7 +23,7 @@ func main() {
 
 	// ルーティング
 	e.GET("/", func(c echo.Context) error {
-		return c.File("/web/*")
+		return c.File("/web/index.html")
 	})
 	e.GET("/books", handler.GetBookMetaInfoAll)
 	e.GET("/books/:ISBN", handler.GetBookProfile)
