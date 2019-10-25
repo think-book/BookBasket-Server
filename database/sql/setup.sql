@@ -1,7 +1,7 @@
 CREATE DATABASE bookbasket;
 
 CREATE TABLE bookbasket.bookInfo(
-    ISBN INT NOT NULL PRIMARY KEY,
+    ISBN UINT(64) NOT NULL PRIMARY KEY,
     title VARCHAR(50),
     description TEXT
 );
