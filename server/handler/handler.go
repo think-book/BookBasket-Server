@@ -12,20 +12,20 @@ type (
 
 	// 本情報用構造体（POST、データ保存用）
 	BookInfo struct {
-		ISBN        int    `json:"ISBN" db:"ISBN"`
+		ISBN        uint64    `json:"ISBN" db:"ISBN"`
 		Title       string `json:"title" db:"title"`
 		Description string `json:"description" db:"description"`
 	}
 
 	// 本メタ情報用構造体（GET用）
 	BookMetaInfo struct {
-		ISBN  int    `json:"ISBN" db:"ISBN"`
+		ISBN  uint64    `json:"ISBN" db:"ISBN"`
 		Title string `json:"title" db:"title"`
 	}
 
 	// 本詳細情報用構造体（GET用）
 	BookProfileInfo struct {
-		ISBN        int    `json:"ISBN" db:"ISBN"`
+		ISBN        uint64    `json:"ISBN" db:"ISBN"`
 		Title       string `json:"title" db:"title"`
 		Description string `json:"description" db:"description"`
 	}
@@ -35,7 +35,7 @@ type (
 		ID     int    `json:"id" db:"id"`
 		UserID int    `json:"userID" db:"userID"`
 		Title  string `json:"title" db:"title"`
-		ISBN   int    `json:"ISBN" db:"ISBN"`
+		ISBN   uint64    `json:"ISBN" db:"ISBN"`
 	}
 
 	// スレッド発言情報
@@ -220,7 +220,7 @@ func PostThreadTitle(c echo.Context) error {
 	}
 
 	// スレッドのISBN設定
-	info.ISBN = isbn
+	info.ISBN = uint64(isbn)
 
 	// 一件挿入用クエリ
 	_, err = db.Exec("INSERT INTO threadMetaInfo (userID, title, ISBN) VALUES(?,?,?)", info.UserID, info.Title, info.ISBN)
