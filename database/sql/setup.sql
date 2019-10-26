@@ -1,7 +1,7 @@
 CREATE DATABASE bookbasket;
 
 CREATE TABLE bookbasket.bookInfo(
-    ISBN INT NOT NULL PRIMARY KEY,
+    ISBN BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     title VARCHAR(50),
     description TEXT
 );
@@ -22,7 +22,7 @@ CREATE TABLE bookbasket.threadMetaInfo(
     id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     userID INT,
     title VARCHAR(50),
-    ISBN INT 
+    ISBN BIGINT UNSIGNED
 );
 
 INSERT INTO bookbasket.threadMetaInfo (userID, title, ISBN) VALUES(
