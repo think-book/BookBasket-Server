@@ -32,7 +32,7 @@ func main() {
 	e.POST("/books", handler.PostBookInfo)
 	e.POST("/books/:ISBN/threads", handler.PostThreadTitle)
 	e.POST("/threads/:threadID", handler.PostThreadMessage)
-	e.POST("/users/register", handler.RegisterUser)
+	e.POST("/users/registration", handler.RegisterUser)
 	e.POST("/users/login", handler.AuthenticateUser)
 
 	// サーバー起動
