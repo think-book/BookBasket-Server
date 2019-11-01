@@ -74,14 +74,67 @@ var (
 `
 
 	// ユーザ登録用
-	testUser = `{"userName":"NewUser","password":"easypass"}`
+	testUser1 = `{"userName":"NewUser","password":"easypass"}`
+	// ユーザ登録用
+	testUser2 = `{"userName":"NewUser11111111","password":"easypass"}`
+	// ユーザ登録用
+	testUser3 = `{"userName":"New_00.-","password":"easypass"}`
+	// ユーザ登録用
+	testUser4 = `{"userName":"New","password":"easypass"}`
+	// ユーザ登録用
+	testUser5 = `{"userName":"NewUser1","password":"easypass1111111"}`
+	// ユーザ登録用
+	testUser6 = `{"userName":"NewUser2","password":"e_a.s!y-pass"}`
+	// ユーザ登録用
+	testUser7 = `{"userName":"NewUser3","password":"easypass111"}`
+
+	// ユーザ登録/認証成功用
+	testUserReturned1 = `{"id":5,"userName":"NewUser"}
+`
+	// ユーザ登録/認証成功用
+	testUserReturned2 = `{"id":6,"userName":"NewUser11111111"}
+`
+	// ユーザ登録/認証成功用
+	testUserReturned3 = `{"id":7,"userName":"New_00.-"}
+`
+	// ユーザ登録/認証成功用
+	testUserReturned4 = `{"id":8,"userName":"New"}
+`
+	// ユーザ登録/認証成功用
+	testUserReturned5 = `{"id":9,"userName":"NewUser1"}
+`
+	// ユーザ登録/認証成功用
+	testUserReturned6 = `{"id":10,"userName":"NewUser2"}
+`
+	// ユーザ登録/認証成功用
+	testUserReturned7 = `{"id":11,"userName":"NewUser3"}
+`
+	// ユーザ登録失敗用
+	failUser1 = `{"userName":"!!Security!!","password":"easypass"}`
+
+	// ユーザ登録失敗用
+	failUser2 = `{"userName":"ab","password":"easypass"}`
+
+	// ユーザ登録失敗用
+	failUser3 = `{"userName":"ab11111111111111","password":"easypass"}`
+
+	// ユーザ登録失敗用
+	failUser4 = `{"userName":"test","password":"ab"}`
+
+	// ユーザ登録失敗用
+	failUser5 = `{"userName":"test","password":"ab"}`
 
 	// ユーザ登録用(大文字小文字の区別なく重複))
-	testSimilarUser = `{"userName":"Newuser","password":"easypass"}`
+	testSimilarUser = `{"userName":"Newuser","password":"Easypass"}`
 
-	// ユーザ登録成功用
-	testUserReturned = `{"id":5,"userName":"NewUser"}
-`
+	// ユーザ登録用(重複))
+	testSameUser = `{"userName":"NewUser","password":"passpass"}`
+
+	// ユーザ登録失敗用
+	loginFailUser1 = `{"userName":"DifferentUser","password":"easypass"}`
+
+	// ユーザ登録失敗用
+	loginFailUser2 = `{"userName":"DifferentUser2","password":"fooooooo"}`
 
 	// ダメなPOST
 	invalidPostData = `{"foo":"bar"}`
@@ -97,8 +150,6 @@ var (
 
 	// ユーザがいないスレッドメッセージ
 	threadMessageMissingUser = `{"userName":"NoName","message":"foo"}`
-
-
 
 	// ヘッダ
 
@@ -136,6 +187,9 @@ var (
 
 	// エラーメッセージ
 	noThread = `Thread doesn't exist`
+
+	// エラーメッセージ
+	loginFailed = `Login Failed`
 )
 
 func TestMain(m *testing.M) {
@@ -788,9 +842,19 @@ func TestPostThreadMessageWithMissingUser(t *testing.T) {
 }
 
 func TestUserRegistration(t *testing.T) {
+	RegistrationHelper(t, testUser1, testUserReturned1)
+	RegistrationHelper(t, testUser2, testUserReturned2)
+	RegistrationHelper(t, testUser3, testUserReturned3)
+	RegistrationHelper(t, testUser4, testUserReturned4)
+	RegistrationHelper(t, testUser5, testUserReturned5)
+	RegistrationHelper(t, testUser6, testUserReturned6)
+	RegistrationHelper(t, testUser7, testUserReturned7)
+}
+
+func RegistrationHelper(t *testing.T, input, expectation string) {
 	// Setup
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(testUser))
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(input))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -801,14 +865,25 @@ func TestUserRegistration(t *testing.T) {
 		res := rec.Result()
 		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, testUserReturned, rec.Body.String())
+		assert.Equal(t, expectation, rec.Body.String())
 	}
 }
 
-func TestUserRegistrationWithSimilarName(t *testing.T) {
+func TestInvalidUserRegistration(t *testing.T) {
+	RegistrationFailHelper(t, testSimilarUser, userExists)
+	RegistrationFailHelper(t, testSameUser, userExists)
+	RegistrationFailHelper(t, invalidPostData, invalidFormat)
+	RegistrationFailHelper(t, failUser1, invalidFormat)
+	RegistrationFailHelper(t, failUser2, invalidFormat)
+	RegistrationFailHelper(t, failUser3, invalidFormat)
+	RegistrationFailHelper(t, failUser4, invalidFormat)
+	RegistrationFailHelper(t, failUser5, invalidFormat)
+}
+
+func RegistrationFailHelper(t *testing.T, input, expectation string) {
 	// Setup
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(testSimilarUser))
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(input))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -819,6 +894,65 @@ func TestUserRegistrationWithSimilarName(t *testing.T) {
 		res := rec.Result()
 		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		assert.Equal(t, userExists, rec.Body.String())
+		assert.Equal(t, expectation, rec.Body.String())
+	}
+}
+
+func TestUserLogin(t *testing.T) {
+	LoginHelper(t, testUser1, testUserReturned1)
+	LoginHelper(t, testUser2, testUserReturned2)
+	LoginHelper(t, testUser3, testUserReturned3)
+	LoginHelper(t, testUser4, testUserReturned4)
+	LoginHelper(t, testUser5, testUserReturned5)
+	LoginHelper(t, testUser6, testUserReturned6)
+	LoginHelper(t, testUser7, testUserReturned7)
+}
+
+func LoginHelper(t *testing.T, input, expectation string) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(input))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/users/login")
+
+	// Assertions
+	if assert.NoError(t, AuthenticateUser(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, expectation, rec.Body.String())
+	}
+}
+
+func TestUserLoginFail(t *testing.T) {
+	LoginFailHelper(t, testSimilarUser, loginFailed)
+	LoginFailHelper(t, testSameUser, loginFailed)
+	LoginFailHelper(t, invalidPostData, invalidFormat)
+	LoginFailHelper(t, failUser1, invalidFormat)
+	LoginFailHelper(t, failUser2, invalidFormat)
+	LoginFailHelper(t, failUser3, invalidFormat)
+	LoginFailHelper(t, failUser4, invalidFormat)
+	LoginFailHelper(t, failUser5, invalidFormat)
+	LoginFailHelper(t, loginFailUser1, loginFailed)
+	LoginFailHelper(t, loginFailUser2, loginFailed)
+}
+
+func LoginFailHelper(t *testing.T, input, expectation string) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(input))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/users/login")
+
+	// Assertions
+	if assert.NoError(t, AuthenticateUser(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, expectation, rec.Body.String())
 	}
 }

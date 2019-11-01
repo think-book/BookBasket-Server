@@ -2,8 +2,8 @@ package handler
 
 import (
 	"net/http"
-	"strconv"
 	"regexp"
+	"strconv"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
@@ -14,35 +14,35 @@ type (
 
 	// 本情報用構造体（POST、データ保存用）
 	BookInfo struct {
-		ISBN        uint64    `json:"ISBN" db:"ISBN"`
+		ISBN        uint64 `json:"ISBN" db:"ISBN"`
 		Title       string `json:"title" db:"title"`
 		Description string `json:"description" db:"description"`
 	}
 
 	// 本メタ情報用構造体（GET用）
 	BookMetaInfo struct {
-		ISBN  uint64    `json:"ISBN" db:"ISBN"`
+		ISBN  uint64 `json:"ISBN" db:"ISBN"`
 		Title string `json:"title" db:"title"`
 	}
 
 	// 本詳細情報用構造体（GET用）
 	BookProfileInfo struct {
-		ISBN        uint64    `json:"ISBN" db:"ISBN"`
+		ISBN        uint64 `json:"ISBN" db:"ISBN"`
 		Title       string `json:"title" db:"title"`
 		Description string `json:"description" db:"description"`
 	}
 
 	// スレッドメタ情報
 	ThreadMetaInfo struct {
-		ID     int    `json:"id" db:"id"`
-		UserName string    `json:"userName" db:"userName"`
-		Title  string `json:"title" db:"title"`
-		ISBN   uint64    `json:"ISBN" db:"ISBN"`
+		ID       int    `json:"id" db:"id"`
+		UserName string `json:"userName" db:"userName"`
+		Title    string `json:"title" db:"title"`
+		ISBN     uint64 `json:"ISBN" db:"ISBN"`
 	}
 
 	// スレッド発言情報
 	ThreadMessage struct {
-		UserName   string    `json:"userName" db:"userName"`
+		UserName string `json:"userName" db:"userName"`
 		Message  string `json:"message" db:"message"`
 		ThreadID int    `json:"threadID" db:"threadID"`
 	}
@@ -55,7 +55,7 @@ type (
 
 	// ユーザ情報（返信用）
 	UserInfoForReturn struct {
-		ID int `json:"id" db:"id"`
+		ID       int    `json:"id" db:"id"`
 		UserName string `json:"userName" db:"userName"`
 	}
 )
@@ -218,7 +218,6 @@ func PostThreadTitle(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Book doesn't exist")
 	}
 
-
 	var user UserInfoForReturn
 	// userNameがデータベースにあるか確認
 	err = db.Get(&user, "SELECT id, userName FROM userInfo WHERE userName=?", info.UserName)
@@ -302,20 +301,22 @@ func PostThreadMessage(c echo.Context) error {
 func RegisterUser(c echo.Context) error {
 	info := new(UserInfo)
 
-	// request bodyをUserRegistrationInfo構造体にバインド
+	// request bodyをUserInfo構造体にバインド
 	if err := c.Bind(info); err != nil {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
+	// 正規表現でユーザ名チェック
 	userRe, err := regexp.Compile(`^[a-zA-Z0-9_\-.]{3,15}$`)
 	if err != nil {
-        return c.String(http.StatusInternalServerError, "Internal Server Error")
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 
+	// 正規表現でパスワードチェック
 	passRe, err := regexp.Compile(`^[a-zA-Z0-9_\-.!]{8,15}$`)
 	if err != nil {
-        return c.String(http.StatusInternalServerError, "Internal Server Error")
-    }
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
 
 	// ポストメッセージのフォーマットが不正
 	if !userRe.Match([]byte(info.UserName)) || !passRe.Match([]byte(info.Password)) {
@@ -331,8 +332,8 @@ func RegisterUser(c echo.Context) error {
 	}
 
 	newPassword, err := bcrypt.GenerateFromPassword([]byte(info.Password), bcrypt.DefaultCost)
-    if err != nil {
-        return c.String(http.StatusBadRequest, "Bad Request")
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Bad Request")
 	}
 
 	// 一件挿入用クエリ
@@ -351,5 +352,62 @@ func RegisterUser(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, registeredUser)
+
+}
+
+// AuthenticateUser ユーザ認証用Post用メソッド
+func AuthenticateUser(c echo.Context) error {
+	info := new(UserInfo)
+
+	// request bodyをUserInfo構造体にバインド
+	if err := c.Bind(info); err != nil {
+		return c.String(http.StatusBadRequest, "Invalid Post Format")
+	}
+
+	// 正規表現でユーザ名チェック
+	userRe, err := regexp.Compile(`^[a-zA-Z0-9_\-.]{3,15}$`)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	// 正規表現でパスワードチェック
+	passRe, err := regexp.Compile(`^[a-zA-Z0-9_\-.!]{8,15}$`)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	// ポストメッセージのフォーマットが不正
+	if !userRe.Match([]byte(info.UserName)) || !passRe.Match([]byte(info.Password)) {
+		return c.String(http.StatusBadRequest, "Invalid Post Format")
+	}
+
+	// ユーザが存在しなければ、ダミー初期値を使用
+	userName := "!!Security!!"
+	password := "$2a$10$XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+	var user UserInfo
+	// userNameがデータベースにあるか確認
+	err = db.Get(&user, "SELECT userName, password FROM userInfo WHERE userName=?", info.UserName)
+	// ユーザが存在すれば、データをとってくる
+	if err == nil {
+		userName = user.UserName
+		password = user.Password
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(password), []byte(info.Password))
+	// ログイン失敗
+	if err != nil || userName == "!!Security!!" {
+		return c.String(http.StatusBadRequest, "Login Failed")
+	}
+
+	var loginedUser UserInfoForReturn
+	// 登録されたユーザ取得
+	err = db.Get(&loginedUser, "SELECT id, userName FROM userInfo WHERE userName=?", info.UserName)
+	// エラーが起きたとき
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	return c.JSON(http.StatusOK, loginedUser)
 
 }

@@ -33,6 +33,7 @@ func main() {
 	e.POST("/books/:ISBN/threads", handler.PostThreadTitle)
 	e.POST("/threads/:threadID", handler.PostThreadMessage)
 	e.POST("/users/register", handler.RegisterUser)
+	e.POST("/users/login", handler.AuthenticateUser)
 
 	// サーバー起動
 	e.Logger.Fatal(e.Start(":8080"))
