@@ -21,6 +21,9 @@ func main() {
 	// Echoのインスタンス作る
 	e := echo.New()
 
+	// 静的ファイルのルーティング
+	e.Static("/", "web")
+
 	// ルーティング
 	e.GET("/books", handler.GetBookMetaInfoAll)
 	e.GET("/books/:ISBN", handler.GetBookProfile)
