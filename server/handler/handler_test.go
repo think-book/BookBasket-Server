@@ -872,6 +872,7 @@ func RegistrationHelper(t *testing.T, input, expectation string) {
 func TestInvalidUserRegistration(t *testing.T) {
 	RegistrationFailHelper(t, testSimilarUser, userExists)
 	RegistrationFailHelper(t, testSameUser, userExists)
+	RegistrationFailHelper(t, badPostData, invalidFormat)
 	RegistrationFailHelper(t, invalidPostData, invalidFormat)
 	RegistrationFailHelper(t, failUser1, invalidFormat)
 	RegistrationFailHelper(t, failUser2, invalidFormat)
@@ -930,6 +931,7 @@ func TestUserLoginFail(t *testing.T) {
 	LoginFailHelper(t, testSimilarUser, loginFailed)
 	LoginFailHelper(t, testSameUser, loginFailed)
 	LoginFailHelper(t, invalidPostData, invalidFormat)
+	LoginFailHelper(t, badPostData, invalidFormat)
 	LoginFailHelper(t, failUser1, invalidFormat)
 	LoginFailHelper(t, failUser2, invalidFormat)
 	LoginFailHelper(t, failUser3, invalidFormat)
