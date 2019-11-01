@@ -101,6 +101,9 @@ $ docker rm (コンテナ名)
 ### スレッドメッセージ
 `{"userID":xxx,"message":"~"}`
 
+### ユーザ登録
+`{"userName":"~", "password":"~"}`
+
 で登録できます。
 
 # Example
@@ -208,3 +211,16 @@ POSTリクエストは、
 もし指定したuserIDのユーザがデータベースに存在しない場合、
 `User doesn't exist`
 が返ります。
+
+## ユーザ登録
+
+POSTリクエストは、
+`$ curl -X POST -H "Content-Type: application/json" -d '{"userName":"~", ...}' {ホストのIPアドレス}/users/register`
+で行えます。
+
+ユーザ名は大文字小文字の区別なく、他人と重複してはいけません。
+重複すると、
+`User already exists`
+が返ります。
+
+パスワードはbcryptで暗号化されます。

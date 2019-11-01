@@ -26,13 +26,13 @@ var (
 `
 
 	// GETThreadTitles用確認データ
-	threadTitlesTestData = `[{"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100}]
+	threadTitlesTestData = `[{"id":1,"userName":"Alice","title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userName":"Bob","title":"there is an awful typo on p.55","ISBN":100}]
 `
 	// 空配列確認データ
 	emptyData = `[]
 `
 	// GETThreadMessages用確認データ
-	threadMessagesTestData = `[{"userID":11,"message":"Me neither.","threadID":1},{"userID":12,"message":"I think the author tries to say ...","threadID":1}]
+	threadMessagesTestData = `[{"userName":"Carol","message":"Me neither.","threadID":1},{"userName":"Charlie","message":"I think the author tries to say ...","threadID":1}]
 `
 
 	// POST用
@@ -41,20 +41,20 @@ var (
 	bookInfoForPost = `{"title":"epic book","ISBN":300,"description":"funny"}`
 
 	// POST送信用スレッドタイトル
-	threadTitleForPost = `{"userID":1,"title":"I don't understand ..."}`
+	threadTitleForPost = `{"userName":"Alice","title":"I don't understand ..."}`
 
 	// POST送信用スレッドメッセージ
-	threadMessageForPost = `{"userID":1,"message":"Maybe it's because ..."}`
+	threadMessageForPost = `{"userName":"Alice","message":"Maybe it's because ..."}`
 
 	// 本情報POST送信完了確認データ
 	postReturnBookInfo = `{"ISBN":300,"title":"epic book","description":"funny"}
 `
 	// スレッドタイトルPOST送信完了確認データ
-	postReturnThreadTitle = `{"id":3,"userID":1,"title":"I don't understand ...","ISBN":100}
+	postReturnThreadTitle = `{"id":3,"userName":"Alice","title":"I don't understand ...","ISBN":100}
 `
 
 	// スレッドメッセージPOST送信完了確認データ
-	postReturnThreadMessage = `{"userID":1,"message":"Maybe it's because ...","threadID":1}
+	postReturnThreadMessage = `{"userName":"Alice","message":"Maybe it's because ...","threadID":1}
 `
 
 	// POSTした後のGET確認データ(メタ情報)
@@ -66,11 +66,21 @@ var (
 `
 
 	// POSTした後のGET確認データ（スレッドタイトル）
-	threadTitlesAfterPost = `[{"id":1,"userID":1,"title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userID":2,"title":"there is an awful typo on p.55","ISBN":100},{"id":3,"userID":1,"title":"I don't understand ...","ISBN":100}]
+	threadTitlesAfterPost = `[{"id":1,"userName":"Alice","title":"I don't understand p.32 at all.","ISBN":100},{"id":2,"userName":"Bob","title":"there is an awful typo on p.55","ISBN":100},{"id":3,"userName":"Alice","title":"I don't understand ...","ISBN":100}]
 `
 
 	// POSTした後のGET確認データ（スレッドメッセージ）
-	threadMessagesAfterPost = `[{"userID":11,"message":"Me neither.","threadID":1},{"userID":12,"message":"I think the author tries to say ...","threadID":1},{"userID":1,"message":"Maybe it's because ...","threadID":1}]
+	threadMessagesAfterPost = `[{"userName":"Carol","message":"Me neither.","threadID":1},{"userName":"Charlie","message":"I think the author tries to say ...","threadID":1},{"userName":"Alice","message":"Maybe it's because ...","threadID":1}]
+`
+
+	// ユーザ登録用
+	testUser = `{"userName":"NewUser","password":"easypass"}`
+
+	// ユーザ登録用(大文字小文字の区別なく重複))
+	testSimilarUser = `{"userName":"Newuser","password":"easypass"}`
+
+	// ユーザ登録成功用
+	testUserReturned = `{"id":5,"userName":"NewUser"}
 `
 
 	// ダメなPOST
@@ -83,10 +93,12 @@ var (
 	badPostData = `hello world`
 
 	// ユーザがいないスレッドタイトル
-	threadTitleMissingUser = `{"userID":100,"title":"foo"}`
+	threadTitleMissingUser = `{"userName":"NoName","title":"foo"}`
 
 	// ユーザがいないスレッドメッセージ
-	threadMessageMissingUser = `{"userID":100,"message":"foo"}`
+	threadMessageMissingUser = `{"userName":"NoName","message":"foo"}`
+
+
 
 	// ヘッダ
 
@@ -115,6 +127,9 @@ var (
 
 	// エラーメッセージ
 	noUser = `User doesn't exist`
+
+	// エラーメッセージ
+	userExists = `User already exists`
 
 	// エラーメッセージ
 	noBook = `Book doesn't exist`
@@ -769,5 +784,41 @@ func TestPostThreadMessageWithMissingUser(t *testing.T) {
 		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 		assert.Equal(t, noUser, rec.Body.String())
+	}
+}
+
+func TestUserRegistration(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(testUser))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/users/register")
+
+	// Assertions
+	if assert.NoError(t, RegisterUser(c)) {
+		res := rec.Result()
+		assert.Equal(t, jsonHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, testUserReturned, rec.Body.String())
+	}
+}
+
+func TestUserRegistrationWithSimilarName(t *testing.T) {
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(testSimilarUser))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/users/register")
+
+	// Assertions
+	if assert.NoError(t, RegisterUser(c)) {
+		res := rec.Result()
+		assert.Equal(t, plainTextHeader, res.Header.Get("Content-Type"))
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Equal(t, userExists, rec.Body.String())
 	}
 }

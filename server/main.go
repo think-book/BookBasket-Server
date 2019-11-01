@@ -32,6 +32,7 @@ func main() {
 	e.POST("/books", handler.PostBookInfo)
 	e.POST("/books/:ISBN/threads", handler.PostThreadTitle)
 	e.POST("/threads/:threadID", handler.PostThreadMessage)
+	e.POST("/users/register", handler.RegisterUser)
 
 	// サーバー起動
 	e.Logger.Fatal(e.Start(":8080"))

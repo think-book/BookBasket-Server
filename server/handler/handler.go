@@ -3,9 +3,11 @@ package handler
 import (
 	"net/http"
 	"strconv"
+	"regexp"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type (
@@ -33,23 +35,28 @@ type (
 	// スレッドメタ情報
 	ThreadMetaInfo struct {
 		ID     int    `json:"id" db:"id"`
-		UserID int    `json:"userID" db:"userID"`
+		UserName string    `json:"userName" db:"userName"`
 		Title  string `json:"title" db:"title"`
 		ISBN   uint64    `json:"ISBN" db:"ISBN"`
 	}
 
 	// スレッド発言情報
 	ThreadMessage struct {
-		UserID   int    `json:"userID" db:"userID"`
+		UserName   string    `json:"userName" db:"userName"`
 		Message  string `json:"message" db:"message"`
 		ThreadID int    `json:"threadID" db:"threadID"`
 	}
 
-	// ユーザ情報
+	// ユーザ情報（登録用）
 	UserInfo struct {
-		ID       int    `json:"id" db:"id"`
 		UserName string `json:"userName" db:"userName"`
 		Password string `json:"password" db:"password"`
+	}
+
+	// ユーザ情報（返信用）
+	UserInfoForReturn struct {
+		ID int `json:"id" db:"id"`
+		UserName string `json:"userName" db:"userName"`
 	}
 )
 
@@ -164,7 +171,7 @@ func GetThreadMessages(c echo.Context) error {
 
 	var threadMeta ThreadMetaInfo
 	// スレッドメタ情報データベースに該当のthreadIDをもつものが登録されているか確認
-	err = db.Get(&threadMeta, "SELECT userID, title, ISBN FROM threadMetaInfo WHERE id=?", threadID)
+	err = db.Get(&threadMeta, "SELECT userName, title, ISBN FROM threadMetaInfo WHERE id=?", threadID)
 	if err != nil {
 		return c.String(http.StatusNotFound, "Not Found")
 	}
@@ -173,7 +180,7 @@ func GetThreadMessages(c echo.Context) error {
 	message := []ThreadMessage{}
 
 	//全件取得クエリ messageに結果をバインド
-	err = db.Select(&message, "SELECT userID, message, threadID FROM threadMessage WHERE threadID=?", threadID)
+	err = db.Select(&message, "SELECT userName, message, threadID FROM threadMessage WHERE threadID=?", threadID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
@@ -199,7 +206,7 @@ func PostThreadTitle(c echo.Context) error {
 	}
 
 	// ポストメッセージのフォーマットが不正
-	if info.Title == "" || info.UserID == 0 {
+	if info.Title == "" || info.UserName == "" {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
@@ -211,9 +218,10 @@ func PostThreadTitle(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Book doesn't exist")
 	}
 
-	var user UserInfo
-	// userIDがデータベースにあるか確認
-	err = db.Get(&user, "SELECT * FROM userInfo WHERE id=?", info.UserID)
+
+	var user UserInfoForReturn
+	// userNameがデータベースにあるか確認
+	err = db.Get(&user, "SELECT id, userName FROM userInfo WHERE userName=?", info.UserName)
 	// ユーザが存在しなければBad request
 	if err != nil {
 		return c.String(http.StatusBadRequest, "User doesn't exist")
@@ -223,7 +231,7 @@ func PostThreadTitle(c echo.Context) error {
 	info.ISBN = uint64(isbn)
 
 	// 一件挿入用クエリ
-	_, err = db.Exec("INSERT INTO threadMetaInfo (userID, title, ISBN) VALUES(?,?,?)", info.UserID, info.Title, info.ISBN)
+	_, err = db.Exec("INSERT INTO threadMetaInfo (userName, title, ISBN) VALUES(?,?,?)", info.UserName, info.Title, info.ISBN)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
@@ -257,21 +265,21 @@ func PostThreadMessage(c echo.Context) error {
 	}
 
 	// ポストメッセージのフォーマットが不正
-	if info.UserID == 0 || info.Message == "" {
+	if info.UserName == "" || info.Message == "" {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
 	var threadMeta ThreadMetaInfo
 	// threadIDがデータベースにあるか確認
-	err = db.Get(&threadMeta, "SELECT userID, title, ISBN FROM threadMetaInfo WHERE id=?", threadID)
+	err = db.Get(&threadMeta, "SELECT userName, title, ISBN FROM threadMetaInfo WHERE id=?", threadID)
 	// threadIDが存在しなければBad request
 	if err != nil {
 		return c.String(http.StatusBadRequest, "Thread doesn't exist")
 	}
 
 	var user UserInfo
-	// userIDがデータベースにあるか確認
-	err = db.Get(&user, "SELECT * FROM userInfo WHERE id=?", info.UserID)
+	// userNameがデータベースにあるか確認
+	err = db.Get(&user, "SELECT userName FROM userInfo WHERE userName=?", info.UserName)
 	// ユーザが存在しなければBad request
 	if err != nil {
 		return c.String(http.StatusBadRequest, "User doesn't exist")
@@ -281,11 +289,67 @@ func PostThreadMessage(c echo.Context) error {
 	info.ThreadID = threadID
 
 	// 一件挿入用クエリ
-	_, err = db.Exec("INSERT INTO threadMessage (userID, message, threadID) VALUES(?,?,?)", info.UserID, info.Message, info.ThreadID)
+	_, err = db.Exec("INSERT INTO threadMessage (userName, message, threadID) VALUES(?,?,?)", info.UserName, info.Message, info.ThreadID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 
 	return c.JSON(http.StatusOK, info)
+
+}
+
+// RegisterUser ユーザ登録用Post用メソッド
+func RegisterUser(c echo.Context) error {
+	info := new(UserInfo)
+
+	// request bodyをUserRegistrationInfo構造体にバインド
+	if err := c.Bind(info); err != nil {
+		return c.String(http.StatusBadRequest, "Invalid Post Format")
+	}
+
+	userRe, err := regexp.Compile(`^[a-zA-Z0-9_\-.]{3,15}$`)
+	if err != nil {
+        return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	passRe, err := regexp.Compile(`^[a-zA-Z0-9_\-.!]{8,15}$`)
+	if err != nil {
+        return c.String(http.StatusInternalServerError, "Internal Server Error")
+    }
+
+	// ポストメッセージのフォーマットが不正
+	if !userRe.Match([]byte(info.UserName)) || !passRe.Match([]byte(info.Password)) {
+		return c.String(http.StatusBadRequest, "Invalid Post Format")
+	}
+
+	var user UserInfo
+	// userNameがデータベースにあるか確認
+	err = db.Get(&user, "SELECT userName FROM userInfo WHERE userName=?", info.UserName)
+	// ユーザが存在すればBadRequest
+	if err == nil {
+		return c.String(http.StatusBadRequest, "User already exists")
+	}
+
+	newPassword, err := bcrypt.GenerateFromPassword([]byte(info.Password), bcrypt.DefaultCost)
+    if err != nil {
+        return c.String(http.StatusBadRequest, "Bad Request")
+	}
+
+	// 一件挿入用クエリ
+	_, err = db.Exec("INSERT INTO userInfo (userName, password) VALUES(?,?)", info.UserName, string(newPassword))
+	// userName衝突
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	var registeredUser UserInfoForReturn
+	// 登録されたユーザ取得
+	err = db.Get(&registeredUser, "SELECT id, userName FROM userInfo WHERE userName=?", info.UserName)
+	// エラーが起きたとき
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	return c.JSON(http.StatusOK, registeredUser)
 
 }
