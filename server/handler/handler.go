@@ -101,20 +101,23 @@ func GetBookMetaInfoForUser(c echo.Context) error {
 	message := []BookMetaInfo{}
 
 	//sessionを見る
-	sess, err := session.Get("session", c)
-	if err != nil {
-		return c.String(http.StatusInternalServerError, "Error")
-	}
-	var userID int
-	//ログインしているか
-	if b, _ := sess.Values["auth"]; b != true {
-		return c.String(http.StatusUnauthorized, "Not Logined")
-	} else {
-		userID, err = strconv.Atoi(sess.Values["userID"].(string))
+	/*
+		sess, err := session.Get("session", c)
 		if err != nil {
-			return c.String(http.StatusInternalServerError, "internal server error")
+			return c.String(http.StatusInternalServerError, "Error")
 		}
-	}
+		var userID int
+		//ログインしているか
+		if b, _ := sess.Values["auth"]; b != true {
+			return c.String(http.StatusUnauthorized, "Not Logined")
+		} else {
+			userID, err = strconv.Atoi(sess.Values["userID"].(string))
+			if err != nil {
+				return c.String(http.StatusInternalServerError, "internal server error")
+			}
+		}*/
+	var err error
+	userID := 1
 
 	var user UserInfo
 	// userIDがデータベースにあるか確認
