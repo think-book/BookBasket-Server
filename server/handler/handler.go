@@ -95,7 +95,7 @@ func GetBookMetaInfoAll(c echo.Context) error { //c をいじって Request, Res
 }
 
 // GetBookMetaInfoForUser ユーザの本情報全取得
-func GetBookMetaInfoForUser(c echo.Context) error { //c をいじって Request, Responseを色々する
+func GetBookMetaInfoForUser(c echo.Context) error {
 
 	// message（bookMetaInfo配列） にメタ情報を格納
 	message := []BookMetaInfo{}
