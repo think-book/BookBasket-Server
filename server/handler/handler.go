@@ -121,7 +121,7 @@ func GetBookMetaInfoForUser(c echo.Context) error {
 
 	var user UserInfo
 	// userIDがデータベースにあるか確認
-	err = db.Get(&user, "SELECT * FROM userInfo WHERE id=?", userID)
+	err = db.Get(&user, "SELECT id, userName FROM userInfo WHERE id=?", userID)
 	// ユーザが存在しなければBad request
 	if err != nil {
 		return c.String(http.StatusBadRequest, "User doesn't exist")
