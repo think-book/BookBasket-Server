@@ -110,12 +110,11 @@ func GetBookMetaInfoForUser(c echo.Context) error {
 	if b, _ := sess.Values["auth"]; b != true {
 		return c.String(http.StatusUnauthorized, "Not Logined")
 	} else {
-		userID, _ = sess.Values["auth"].(int)
+		userID, _ = sess.Values["userID"].(int)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, "internal server error")
 		}
 	}
-	fmt.Printf(sess.Values["userID"].(string))
 
 	var user UserInfoForReturn
 	// userIDがデータベースにあるか確認
