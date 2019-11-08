@@ -110,7 +110,7 @@ func GetBookMetaInfoForUser(c echo.Context) error {
 	if b, _ := sess.Values["auth"]; b != true {
 		return c.String(http.StatusUnauthorized, "Not Logined")
 	} else {
-		userID, err = strconv.Atoi(sess.Values["userID"].(string))
+		userID, _ = sess.Values["auth"].(int)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, "internal server error")
 		}
