@@ -3,8 +3,10 @@ package main
 import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/think-book/BookBasket-Server/handler"
+	"github.com/gorilla/sessions"
+  	"github.com/labstack/echo-contrib/session"
 )
 
 func main() {
@@ -20,6 +22,9 @@ func main() {
 
 	// Echoのインスタンス作る
 	e := echo.New()
+
+	// セッション使うため
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 
 	// 静的ファイルのルーティング
 	e.Static("/", "web")

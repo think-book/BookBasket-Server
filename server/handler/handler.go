@@ -7,8 +7,10 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
 )
 
 type (
@@ -411,6 +413,15 @@ func AuthenticateUser(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 
-	return c.JSON(http.StatusOK, loginedUser)
+	sess, _ := session.Get("session", c)
+  	sess.Options = &sessions.Options{
+		MaxAge:   86400 * 7,
+		HttpOnly: true,
+  	}
+	sess.Values["auth"] = true
+	sess.Values["userID"] = loginedUser.ID
+	sess.Values["userName"] = loginedUser.UserName
+  	sess.Save(c.Request(), c.Response())
 
+	return c.JSON(http.StatusOK, loginedUser)
 }

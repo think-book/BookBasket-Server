@@ -9,7 +9,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -898,6 +898,7 @@ func RegistrationFailHelper(t *testing.T, input, expectation string) {
 		assert.Equal(t, expectation, rec.Body.String())
 	}
 }
+
 
 func TestUserLogin(t *testing.T) {
 	LoginHelper(t, testUser1, testUserReturned1)

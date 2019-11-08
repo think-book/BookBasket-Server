@@ -21,6 +21,6 @@ RUN apk add --update --no-cache bash
 
 COPY --from=build /server .
 COPY ./wait-for-it.sh .
-COPY ./web ./web
+#COPY ./web ./web
 
 EXPOSE 8080
