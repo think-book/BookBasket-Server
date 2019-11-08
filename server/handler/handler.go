@@ -364,7 +364,7 @@ func AuthenticateUser(c echo.Context) error {
 
 	// request bodyをUserInfo構造体にバインド
 	if err := c.Bind(info); err != nil {
-		return c.String(http.StatusBadRequest, "Invalid Post Format")
+		return c.String(http.StatusBadRequest, "Invalid Post Format 1")
 	}
 
 	// 正規表現でユーザ名チェック
@@ -381,7 +381,7 @@ func AuthenticateUser(c echo.Context) error {
 
 	// ポストメッセージのフォーマットが不正
 	if !userRe.Match([]byte(info.UserName)) || !passRe.Match([]byte(info.Password)) {
-		return c.String(http.StatusBadRequest, "Invalid Post Format")
+		return c.String(http.StatusBadRequest, "Invalid Post Format 2")
 	}
 
 	// ユーザが存在しなければ、ダミー初期値を使用
