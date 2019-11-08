@@ -1,16 +1,16 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
 	"strconv"
-	"fmt"
 
+	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
-	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
 )
 
 type (
@@ -102,14 +102,14 @@ func GetBookMetaInfoForUser(c echo.Context) error { //c をいじって Request,
 
 	//sessionを見る
 	sess, err := session.Get("session", c)
-	if err!=nil {
+	if err != nil {
 		return c.String(http.StatusInternalServerError, "Error")
 	}
 	var userID int
 	//ログインしているか
 	if b, _ := sess.Values["auth"]; b != true {
 		return c.String(http.StatusUnauthorized, "Not Logined")
-	}else {
+	} else {
 		userID, err = strconv.Atoi(sess.Values["userID"].(string))
 		if err != nil {
 			return c.String(http.StatusInternalServerError, "internal server error")
@@ -489,14 +489,15 @@ func AuthenticateUser(c echo.Context) error {
 	}
 
 	sess, _ := session.Get("session", c)
-  	sess.Options = &sessions.Options{
+	sess.Options = &sessions.Options{
+		Path:     "/",
 		MaxAge:   86400 * 7,
 		HttpOnly: true,
-  	}
+	}
 	sess.Values["auth"] = true
 	sess.Values["userID"] = loginedUser.ID
 	sess.Values["userName"] = loginedUser.UserName
-  	sess.Save(c.Request(), c.Response())
+	sess.Save(c.Request(), c.Response())
 
 	return c.JSON(http.StatusOK, loginedUser)
 }
