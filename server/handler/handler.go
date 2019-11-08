@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"strconv"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
@@ -116,6 +117,7 @@ func PostBookInfo(c echo.Context) error {
 	_, err := db.Exec("INSERT INTO bookInfo (ISBN, title, description) VALUES(?,?,?)", info.ISBN, info.Title, info.Description)
 	// PRIMARY KEY(ISBN)がすでに存在した時（を想定）
 	if err != nil {
+		fmt.Println(err)
 		return c.String(http.StatusBadRequest, "Book info already exists")
 	}
 
