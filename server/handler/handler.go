@@ -22,6 +22,12 @@ type (
 		Description string `json:"description" db:"description"`
 	}
 
+	// 本とユーザの関係用構造体
+	UserBookRelation struct {
+		UserID int `db:"userID"`
+		ISBN   int `db:"ISBN"`
+	}
+
 	// 本メタ情報用構造体（GET用）
 	BookMetaInfo struct {
 		ISBN  uint64 `json:"ISBN" db:"ISBN"`
@@ -81,6 +87,75 @@ func GetBookMetaInfoAll(c echo.Context) error { //c をいじって Request, Res
 
 	//全件取得クエリ messageに結果をバインド
 	err := db.Select(&message, "SELECT ISBN, title FROM bookInfo")
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	return c.JSON(http.StatusOK, message)
+}
+
+// GetBookMetaInfoForUser ユーザの本情報全取得
+func GetBookMetaInfoForUser(c echo.Context) error { //c をいじって Request, Responseを色々する
+
+	// message（bookMetaInfo配列） にメタ情報を格納
+	message := []BookMetaInfo{}
+
+	//sessionを見る
+	sess, err := session.Get("session", c)
+	if err!=nil {
+		return c.String(http.StatusInternalServerError, "Error")
+	}
+	var userID int
+	//ログインしているか
+	if b, _ := sess.Values["auth"]; b != true {
+		return c.String(http.StatusUnauthorized, "Not Logined")
+	}else {
+		userID, err = strconv.Atoi(sess.Values["userID"].(string))
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "internal server error")
+		}
+	}
+
+	var user UserInfo
+	// userIDがデータベースにあるか確認
+	err = db.Get(&user, "SELECT * FROM userInfo WHERE id=?", userID)
+	// ユーザが存在しなければBad request
+	if err != nil {
+		return c.String(http.StatusBadRequest, "User doesn't exist")
+	}
+
+	// ユーザと本の関係を入れる用
+	relation := []UserBookRelation{}
+
+	//userIDのユーザが登録している本のISBN全件取得クエリ relationに結果をバインド
+	err = db.Select(&relation, "SELECT * FROM userBookRelation WHERE userID=?", userID)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	// userIDのユーザが本を一冊も登録していなかったとき（[]を返す）
+	if len(relation) == 0 {
+		return c.JSON(http.StatusOK, message)
+	}
+
+	// relationからISBNだけ抜き取る
+	ISBNs := []int{}
+	for _, r := range relation {
+		ISBNs = append(ISBNs, r.ISBN)
+	}
+
+	//本取得クエリを生成するための処理
+	//query: where inを含んだ新しいクエリ
+	//args : 引数
+	query, args, err := sqlx.In("SELECT ISBN, title FROM bookInfo WHERE ISBN IN (?)", ISBNs)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+	// mysql用にクエリをリバインド？（っぽい）
+	query = db.Rebind(query)
+
+	//全件取得クエリ messageに結果をバインド
+	err = db.Select(&message, query, args...)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}

@@ -17,6 +17,20 @@ INSERT INTO bookbasket.bookInfo (title, description, ISBN) VALUES(
     '200'
 );
 
+CREATE TABLE bookbasket.userBookRelation(
+    userID INT NOT NULL,
+    ISBN INT NOT NULL,
+    PRIMARY KEY(userID, ISBN)
+);
+
+INSERT INTO bookbasket.userBookRelation (userID, ISBN) VALUES(
+    '1',
+    '100'
+),
+(
+    '1',
+    '200'
+);
 
 CREATE TABLE bookbasket.threadMetaInfo(
     id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,

@@ -30,10 +30,11 @@ func main() {
 	e.Static("/", "web")
 
 	// ルーティング
-	e.GET("/books", handler.GetBookMetaInfoAll)
+	e.GET("/books", handler.GetBookMetaInfoForUser)
 	e.GET("/books/:ISBN", handler.GetBookProfile)
 	e.GET("/books/:ISBN/threads", handler.GetThreadTitles)
 	e.GET("/threads/:threadID", handler.GetThreadMessages)
+	e.GET("/users/:userID/books", handler.GetBookMetaInfoForUser)
 	e.POST("/books", handler.PostBookInfo)
 	e.POST("/books/:ISBN/threads", handler.PostThreadTitle)
 	e.POST("/threads/:threadID", handler.PostThreadMessage)
