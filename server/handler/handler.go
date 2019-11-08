@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
@@ -340,6 +341,7 @@ func RegisterUser(c echo.Context) error {
 	_, err = db.Exec("INSERT INTO userInfo (userName, password) VALUES(?,?)", info.UserName, string(newPassword))
 	// userName衝突
 	if err != nil {
+		fmt.Println(err)
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 
@@ -348,6 +350,7 @@ func RegisterUser(c echo.Context) error {
 	err = db.Get(&registeredUser, "SELECT id, userName FROM userInfo WHERE userName=?", info.UserName)
 	// エラーが起きたとき
 	if err != nil {
+
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 

@@ -65,7 +65,7 @@ $ docker-compose up --build
 
 `$ docker-compose down -v`
 でデータベース初期化してコンテナ終了
-(-v しないとvolumeがどんどん溜まっていく)
+(-v しないとvolumeがどんどん溜まっていく。VPSは-vいらない)
 
 データベースを初期化しない場合は、
 
@@ -215,7 +215,7 @@ POSTリクエストは、
 ## ユーザ登録
 
 POSTリクエストは、
-`$ curl -X POST -H "Content-Type: application/json" -d '{"userName":"~", ...}' {ホストのIPアドレス}/users/register`
+`$ curl -X POST -H "Content-Type: application/json" -d '{"userName":"~", ...}' {ホストのIPアドレス}/users/registration`
 で行えます。
 
 ユーザ名は大文字小文字の区別なく、他人と重複してはいけません。
@@ -223,4 +223,22 @@ POSTリクエストは、
 `User already exists`
 が返ります。
 
+成功すると、
+`{"id":x,"userName":"~"}`
+が返ります。
+
 パスワードはbcryptで暗号化されます。
+
+## ユーザ認証
+
+POSTリクエストは、
+`$ curl -X POST -H "Content-Type: application/json" -d '{"userName":"~", ...}' {ホストのIPアドレス}/users/login`
+で行えます。
+
+失敗すると、
+`Login Failed`
+が返ります。
+
+成功すると、
+`{"id":x,"userName":"~"}`
+が返ります。
