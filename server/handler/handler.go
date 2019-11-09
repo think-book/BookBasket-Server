@@ -43,15 +43,13 @@ type (
 
 	// スレッドメタ情報
 	ThreadMetaInfo struct {
-		ID       int    `json:"id" db:"id"`
-		UserName string `json:"userName" db:"userName"`
-		Title    string `json:"title" db:"title"`
-		ISBN     uint64 `json:"ISBN" db:"ISBN"`
+		ID    int    `json:"id" db:"id"`
+		Title string `json:"title" db:"title"`
+		ISBN  uint64 `json:"ISBN" db:"ISBN"`
 	}
 
 	// スレッド発言情報
 	ThreadMessage struct {
-		UserName string `json:"userName" db:"userName"`
 		Message  string `json:"message" db:"message"`
 		ThreadID int    `json:"threadID" db:"threadID"`
 	}
@@ -101,7 +99,6 @@ func GetBookMetaInfoForUser(c echo.Context) error {
 	message := []BookMetaInfo{}
 
 	//sessionを見る
-
 	sess, _ := session.Get("session", c)
 	var userID int
 	var err error
@@ -187,6 +184,21 @@ func GetBookProfile(c echo.Context) error {
 func PostBookInfo(c echo.Context) error {
 	var info BookInfo
 
+	//sessionを見る
+	sess, _ := session.Get("session", c)
+	var userID int
+	var err error
+
+	//ログインしているか
+	if b, _ := sess.Values["auth"]; b != true {
+		return c.String(http.StatusUnauthorized, "Not Logined")
+	} else {
+		userID, _ = sess.Values["userID"].(int)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "internal server error")
+		}
+	}
+
 	// request bodyをBookInfo構造体にバインド
 	if err := c.Bind(&info); err != nil {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
@@ -197,11 +209,18 @@ func PostBookInfo(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
-	// 一件挿入用クエリ
-	_, err := db.Exec("INSERT INTO bookInfo (ISBN, title, description) VALUES(?,?,?)", info.ISBN, info.Title, info.Description)
-	// PRIMARY KEY(ISBN)がすでに存在した時（を想定）
+	// 一件挿入用クエリ（ユーザと本の関係）
+	_, err = db.Exec("INSERT INTO userBookRelation (userID, ISBN) VALUES(?,?)", userID, info.ISBN)
+	// PRIMARY KEY(userID, ISBN)がすでに存在した時（を想定）
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Book info already exists")
+		return c.String(http.StatusBadRequest, "Book has already been registerd")
+	}
+
+	// 一件挿入用クエリ（グローバルな本棚）
+	_, err = db.Exec("INSERT INTO bookInfo (ISBN, title, description) VALUES(?,?,?)", info.ISBN, info.Title, info.Description)
+	// PRIMARY KEY(ISBN)がすでに存在した時（を想定）。ユーザにとっては初めての登録のため、StatusOK
+	if err != nil {
+		return c.JSON(http.StatusOK, info)
 	}
 
 	return c.JSON(http.StatusOK, info)
@@ -278,13 +297,27 @@ func PostThreadTitle(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "ISBN must be an integer")
 	}
 
+	//sessionを見る
+	sess, _ := session.Get("session", c)
+	var userID int
+
+	//ログインしているか
+	if b, _ := sess.Values["auth"]; b != true {
+		return c.String(http.StatusUnauthorized, "Not Logined")
+	} else {
+		userID, _ = sess.Values["userID"].(int)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "internal server error")
+		}
+	}
+
 	// request bodyをThreadMetaInfo構造体にバインド
 	if err := c.Bind(info); err != nil {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
 	// ポストメッセージのフォーマットが不正
-	if info.Title == "" || info.UserName == "" {
+	if info.Title == "" {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
@@ -297,8 +330,8 @@ func PostThreadTitle(c echo.Context) error {
 	}
 
 	var user UserInfoForReturn
-	// userNameがデータベースにあるか確認
-	err = db.Get(&user, "SELECT id, userName FROM userInfo WHERE userName=?", info.UserName)
+	// userIDがデータベースにあるか確認
+	err = db.Get(&user, "SELECT id, userName FROM userInfo WHERE userName=?", userID)
 	// ユーザが存在しなければBad request
 	if err != nil {
 		return c.String(http.StatusBadRequest, "User doesn't exist")
@@ -308,7 +341,7 @@ func PostThreadTitle(c echo.Context) error {
 	info.ISBN = uint64(isbn)
 
 	// 一件挿入用クエリ
-	_, err = db.Exec("INSERT INTO threadMetaInfo (userName, title, ISBN) VALUES(?,?,?)", info.UserName, info.Title, info.ISBN)
+	_, err = db.Exec("INSERT INTO threadMetaInfo (userName, title, ISBN) VALUES(?,?,?)", user.UserName, info.Title, info.ISBN)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
@@ -336,13 +369,27 @@ func PostThreadMessage(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "ThreadID must be an integer")
 	}
 
+	//sessionを見る
+	sess, _ := session.Get("session", c)
+	var userID int
+
+	//ログインしているか
+	if b, _ := sess.Values["auth"]; b != true {
+		return c.String(http.StatusUnauthorized, "Not Logined")
+	} else {
+		userID, _ = sess.Values["userID"].(int)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "internal server error")
+		}
+	}
+
 	// request bodyをThreadMessage構造体にバインド
 	if err := c.Bind(info); err != nil {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
 	// ポストメッセージのフォーマットが不正
-	if info.UserName == "" || info.Message == "" {
+	if info.Message == "" {
 		return c.String(http.StatusBadRequest, "Invalid Post Format")
 	}
 
@@ -354,9 +401,9 @@ func PostThreadMessage(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Thread doesn't exist")
 	}
 
-	var user UserInfo
-	// userNameがデータベースにあるか確認
-	err = db.Get(&user, "SELECT userName FROM userInfo WHERE userName=?", info.UserName)
+	var user UserInfoForReturn
+	// userIDがデータベースにあるか確認
+	err = db.Get(&user, "SELECT id, userName FROM userInfo WHERE userName=?", userID)
 	// ユーザが存在しなければBad request
 	if err != nil {
 		return c.String(http.StatusBadRequest, "User doesn't exist")
@@ -366,7 +413,7 @@ func PostThreadMessage(c echo.Context) error {
 	info.ThreadID = threadID
 
 	// 一件挿入用クエリ
-	_, err = db.Exec("INSERT INTO threadMessage (userName, message, threadID) VALUES(?,?,?)", info.UserName, info.Message, info.ThreadID)
+	_, err = db.Exec("INSERT INTO threadMessage (userName, message, threadID) VALUES(?,?,?)", user.UserName, info.Message, info.ThreadID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
@@ -430,6 +477,17 @@ func RegisterUser(c echo.Context) error {
 
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
+
+	sess, _ := session.Get("session", c)
+	sess.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 7,
+		HttpOnly: true,
+	}
+	sess.Values["auth"] = true
+	sess.Values["userID"] = registeredUser.ID
+	sess.Values["userName"] = registeredUser.UserName
+	sess.Save(c.Request(), c.Response())
 
 	return c.JSON(http.StatusOK, registeredUser)
 

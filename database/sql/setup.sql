@@ -19,7 +19,7 @@ INSERT INTO bookbasket.bookInfo (title, description, ISBN) VALUES(
 
 CREATE TABLE bookbasket.userBookRelation(
     userID INT NOT NULL,
-    ISBN INT NOT NULL,
+    ISBN BIGINT UNSIGNED NOT NULL,
     PRIMARY KEY(userID, ISBN)
 );
 

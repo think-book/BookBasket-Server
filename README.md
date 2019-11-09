@@ -96,10 +96,10 @@ $ docker rm (コンテナ名)
 `{"ISBN":xxx,"title":"~","description":"~"}`
 
 ### スレッドタイトル
-`{"userID":xxx,"title":"~"}`
+`{"title":"~"}`
 
 ### スレッドメッセージ
-`{"userID":xxx,"message":"~"}`
+`{"message":"~"}`
 
 ### ユーザ登録
 `{"userName":"~", "password":"~"}`
@@ -150,7 +150,7 @@ ISBNでの取得は、
 
 ## POSTリクエスト（本情報）
 
-POSTリクエストは、
+POSTリクエスト（ユーザの本棚への登録）は、
 `$ curl -X POST -H "Content-Type: application/json" -d '{"ISBN":xxx, ...}' {ホストのIPアドレス}:8080/books`
 で行えます。
 
@@ -162,8 +162,8 @@ POSTリクエストは、
 `Invalid Post Format`
 が返ります。
 
-もし詳細情報がすでに存在している場合、
-`Book info already exists`
+もしユーザがその本を既に登録している場合、
+`Book has already been registerd`
 が返ります。
 
 
@@ -185,7 +185,7 @@ POSTリクエストは、
 `Book doesn't exist`
 が返ります。
 
-もし指定したuserIDのユーザがデータベースに存在しない場合、
+もしログインしたuserIDのユーザがデータベースに存在しない場合、
 `User doesn't exist`
 が返ります。
 
@@ -208,7 +208,7 @@ POSTリクエストは、
 `Thread doesn't exist`
 が返ります。
 
-もし指定したuserIDのユーザがデータベースに存在しない場合、
+もしログインしたuserIDのユーザがデータベースに存在しない場合、
 `User doesn't exist`
 が返ります。
 
