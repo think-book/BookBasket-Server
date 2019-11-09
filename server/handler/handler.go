@@ -333,7 +333,7 @@ func PostThreadTitle(c echo.Context) error {
 
 	var user UserInfoForReturn
 	// userIDがデータベースにあるか確認
-	err = db.Get(&user, "SELECT id, userName FROM userInfo WHERE userName=?", userID)
+	err = db.Get(&user, "SELECT id, userName FROM userInfo WHERE id=?", userID)
 	// ユーザが存在しなければBad request
 	if err != nil {
 		return c.String(http.StatusBadRequest, "User doesn't exist")
@@ -405,7 +405,7 @@ func PostThreadMessage(c echo.Context) error {
 
 	var user UserInfoForReturn
 	// userIDがデータベースにあるか確認
-	err = db.Get(&user, "SELECT id, userName FROM userInfo WHERE userName=?", userID)
+	err = db.Get(&user, "SELECT id, userName FROM userInfo WHERE id=?", userID)
 	// ユーザが存在しなければBad request
 	if err != nil {
 		return c.String(http.StatusBadRequest, "User doesn't exist")

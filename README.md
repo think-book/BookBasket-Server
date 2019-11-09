@@ -170,7 +170,7 @@ POSTリクエスト（ユーザの本棚への登録）は、
 ## POSTリクエスト（スレッドタイトル）
 
 POSTリクエストは、
-`$ curl -X POST -H "Content-Type: application/json" -d '{"userID":xxx, ...}' {ホストのIPアドレス}:8080/books/:ISBN/threads`
+`$ curl -X POST -H "Content-Type: application/json" -d '{"title":"~"}' {ホストのIPアドレス}:8080/books/:ISBN/threads`
 で行えます。
 
 登録が成功した場合、
@@ -193,7 +193,7 @@ POSTリクエストは、
 ## POSTリクエスト（スレッドメッセージ）
 
 POSTリクエストは、
-`$ curl -X POST -H "Content-Type: application/json" -d '{"userID":xxx, ...}' {ホストのIPアドレス}:8080/threads/:threadID`
+`$ curl -X POST -H "Content-Type: application/json" -d '{"message":"~"}' {ホストのIPアドレス}:8080/threads/:threadID`
 で行えます。
 
 登録が成功した場合、
