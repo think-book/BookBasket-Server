@@ -43,13 +43,15 @@ type (
 
 	// スレッドメタ情報
 	ThreadMetaInfo struct {
-		ID    int    `json:"id" db:"id"`
-		Title string `json:"title" db:"title"`
-		ISBN  uint64 `json:"ISBN" db:"ISBN"`
+		ID       int    `json:"id" db:"id"`
+		UserName string `json:"userName" db:"userName"`
+		Title    string `json:"title" db:"title"`
+		ISBN     uint64 `json:"ISBN" db:"ISBN"`
 	}
 
 	// スレッド発言情報
 	ThreadMessage struct {
+		UserName string `json:"userName" db:"userName"`
 		Message  string `json:"message" db:"message"`
 		ThreadID int    `json:"threadID" db:"threadID"`
 	}
