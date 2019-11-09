@@ -356,6 +356,7 @@ func PostThreadTitle(c echo.Context) error {
 	}
 
 	info.ID = id
+	info.UserName = user.UserName
 
 	return c.JSON(http.StatusOK, info)
 }
@@ -413,6 +414,7 @@ func PostThreadMessage(c echo.Context) error {
 
 	// メッセージのthreadID設定
 	info.ThreadID = threadID
+	info.UserName = user.UserName
 
 	// 一件挿入用クエリ
 	_, err = db.Exec("INSERT INTO threadMessage (userName, message, threadID) VALUES(?,?,?)", user.UserName, info.Message, info.ThreadID)
