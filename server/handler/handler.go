@@ -106,13 +106,10 @@ func GetBookMetaInfoForUser(c echo.Context) error {
 	var err error
 
 	//ログインしているか
-	if b, _ := sess.Values["auth"]; b != true {
+	if b := sess.Values["auth"]; b != true {
 		return c.String(http.StatusUnauthorized, "Not Logined")
 	} else {
-		userID, _ = sess.Values["userID"].(int)
-		if err != nil {
-			return c.String(http.StatusInternalServerError, "internal server error")
-		}
+		userID = sess.Values["userID"].(int)
 	}
 
 	var user UserInfoForReturn
@@ -192,13 +189,10 @@ func PostBookInfo(c echo.Context) error {
 	var err error
 
 	//ログインしているか
-	if b, _ := sess.Values["auth"]; b != true {
+	if b := sess.Values["auth"]; b != true {
 		return c.String(http.StatusUnauthorized, "Not Logined")
 	} else {
-		userID, _ = sess.Values["userID"].(int)
-		if err != nil {
-			return c.String(http.StatusInternalServerError, "internal server error")
-		}
+		userID = sess.Values["userID"].(int)
 	}
 
 	// request bodyをBookInfo構造体にバインド
@@ -304,13 +298,10 @@ func PostThreadTitle(c echo.Context) error {
 	var userID int
 
 	//ログインしているか
-	if b, _ := sess.Values["auth"]; b != true {
+	if b := sess.Values["auth"]; b != true {
 		return c.String(http.StatusUnauthorized, "Not Logined")
 	} else {
-		userID, _ = sess.Values["userID"].(int)
-		if err != nil {
-			return c.String(http.StatusInternalServerError, "internal server error")
-		}
+		userID = sess.Values["userID"].(int)
 	}
 
 	// request bodyをThreadMetaInfo構造体にバインド
@@ -377,13 +368,10 @@ func PostThreadMessage(c echo.Context) error {
 	var userID int
 
 	//ログインしているか
-	if b, _ := sess.Values["auth"]; b != true {
+	if b := sess.Values["auth"]; b != true {
 		return c.String(http.StatusUnauthorized, "Not Logined")
 	} else {
-		userID, _ = sess.Values["userID"].(int)
-		if err != nil {
-			return c.String(http.StatusInternalServerError, "internal server error")
-		}
+		userID　= sess.Values["userID"].(int)
 	}
 
 	// request bodyをThreadMessage構造体にバインド
@@ -491,7 +479,10 @@ func RegisterUser(c echo.Context) error {
 	sess.Values["auth"] = true
 	sess.Values["userID"] = registeredUser.ID
 	sess.Values["userName"] = registeredUser.UserName
-	sess.Save(c.Request(), c.Response())
+
+	if err := sess.Save(c.Request(), c.Response()); err != nil{
+		return c.NoContent(http.StatusInternalServerError)
+	}
 
 	return c.JSON(http.StatusOK, registeredUser)
 
@@ -559,7 +550,9 @@ func AuthenticateUser(c echo.Context) error {
 	sess.Values["auth"] = true
 	sess.Values["userID"] = loginedUser.ID
 	sess.Values["userName"] = loginedUser.UserName
-	sess.Save(c.Request(), c.Response())
+	if err := sess.Save(c.Request(), c.Response()); err != nil{
+		return c.NoContent(http.StatusInternalServerError)
+	}
 
 	return c.JSON(http.StatusOK, loginedUser)
 }
