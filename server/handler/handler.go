@@ -436,13 +436,13 @@ func RegisterUser(c echo.Context) error {
 	}
 
 	// 正規表現でユーザ名チェック
-	userRe, err := regexp.Compile(`^[a-zA-Z0-9_\-.]{3,15}$`)
+	userRe, err := regexp.Compile(`^[a-zA-Z0-9_\-\.]{3,15}$`)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 
 	// 正規表現でパスワードチェック
-	passRe, err := regexp.Compile(`^[a-zA-Z0-9_\-.!]{8,15}$`)
+	passRe, err := regexp.Compile(`^[a-zA-Z0-9_\-\.!]{8,15}$`)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
@@ -507,13 +507,13 @@ func AuthenticateUser(c echo.Context) error {
 	}
 
 	// 正規表現でユーザ名チェック
-	userRe, err := regexp.Compile(`^[a-zA-Z0-9_\-.]{3,15}$`)
+	userRe, err := regexp.Compile(`^[a-zA-Z0-9_\-\.]{3,15}$`)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 
 	// 正規表現でパスワードチェック
-	passRe, err := regexp.Compile(`^[a-zA-Z0-9_\-.!]{8,15}$`)
+	passRe, err := regexp.Compile(`^[a-zA-Z0-9_\-\.!]{8,15}$`)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
