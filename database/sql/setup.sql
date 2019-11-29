@@ -1,9 +1,9 @@
 CREATE DATABASE bookbasket;
 
 DROP USER 'root'@'%';
-CREATE USER 'root'@'172.19.0.3';
-GRANT SELECT ON bookbasket.* TO 'root'@'172.19.0.3';
-GRANT INSERT ON bookbasket.* TO 'root'@'172.19.0.3';
+CREATE USER 'root'@'172.19.0.3' IDENTIFIED BY 'password';
+GRANT SELECT ON bookbasket.* TO 'root'@'172.19.0.3' IDENTIFIED BY 'password';
+GRANT INSERT ON bookbasket.* TO 'root'@'172.19.0.3' IDENTIFIED BY 'password';
 
 CREATE TABLE bookbasket.bookInfo(
     ISBN BIGINT UNSIGNED NOT NULL PRIMARY KEY,
