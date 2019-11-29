@@ -4,13 +4,25 @@ services:
     build: ./server
     depends_on:
       - "db"
+    networks:
+      app_net:
+        ipv4_address: 172.19.0.3
     ports:
       - "80:8080"
-    entrypoint: ./wait-for-it.sh db:3306 -- ./server
+    entrypoint: ./wait-for-it.sh 172.19.0.2:3306 -- ./server
   db:
     build: ./database
     container_name: my_db
     volumes:
       - ./database/data:/var/lib/mysql
-    ports:
-      - "3306:3306"
+    networks:
+      app_net:
+        ipv4_address: 172.19.0.2
+
+networks:
+  app_net:
+    driver: bridge
+    ipam:
+     driver: default
+     config:
+       - subnet: 172.19.0.0/24

@@ -1,5 +1,10 @@
 CREATE DATABASE bookbasket;
 
+DROP USER 'root'@'%';
+CREATE USER 'root'@'172.19.0.3';
+GRANT SELECT ON bookbasket.* TO 'root'@'172.19.0.3';
+GRANT INSERT ON bookbasket.* TO 'root'@'172.19.0.3';
+
 CREATE TABLE bookbasket.bookInfo(
     ISBN BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     title VARCHAR(50),
