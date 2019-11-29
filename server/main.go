@@ -11,7 +11,7 @@ import (
 
 func main() {
 	// mysqlに接続
-	db, err := sqlx.Open("mysql", "root:password@tcp(my_db:3306)/bookbasket")
+	db, err := sqlx.Open("mysql", "root:password@tcp(172.19.0.2:3306)/bookbasket")
 	if err != nil {
 		panic(err)
 	}
