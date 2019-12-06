@@ -1,8 +1,6 @@
 CREATE DATABASE bookbasket;
 
 DROP USER 'root'@'%';
-DROP USER 'mysql.session'@'localhost'
-DROP USER 'mysql.sys'@'localhost'
 CREATE USER 'root'@'172.19.0.3' IDENTIFIED BY 'password';
 GRANT SELECT ON bookbasket.* TO 'root'@'172.19.0.3' IDENTIFIED BY 'password';
 GRANT INSERT ON bookbasket.* TO 'root'@'172.19.0.3' IDENTIFIED BY 'password';
