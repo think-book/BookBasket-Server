@@ -159,6 +159,65 @@ func GetBookMetaInfoForUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, message)
 }
 
+// GetBookMetaInfoForOtherUser 指定した他のユーザの本取得
+func GetBookMetaInfoForOtherUser(c echo.Context) error {
+	// message（bookMetaInfo配列） にメタ情報を格納
+	message := []BookMetaInfo{}
+
+	// urlのユーザid取得
+	userID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		// idがintでなければBadRequestを返す
+		return c.String(http.StatusBadRequest, "User id must be an integer")
+	}
+
+	var user UserInfoForReturn
+	// userIDがデータベースにあるか確認
+	err = db.Get(&user, "SELECT id, userName FROM userInfo WHERE id=?", userID)
+	// ユーザが存在しなければBad request
+	if err != nil {
+		return c.String(http.StatusBadRequest, "User doesn't exist")
+	}
+
+	// ユーザと本の関係を入れる用
+	relation := []UserBookRelation{}
+
+	//userIDのユーザが登録している本のISBN全件取得クエリ relationに結果をバインド
+	err = db.Select(&relation, "SELECT * FROM userBookRelation WHERE userID=?", userID)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	// userIDのユーザが本を一冊も登録していなかったとき（[]を返す）
+	if len(relation) == 0 {
+		return c.JSON(http.StatusOK, message)
+	}
+
+	// relationからISBNだけ抜き取る
+	ISBNs := []int{}
+	for _, r := range relation {
+		ISBNs = append(ISBNs, r.ISBN)
+	}
+
+	//本取得クエリを生成するための処理
+	//query: where inを含んだ新しいクエリ
+	//args : 引数
+	query, args, err := sqlx.In("SELECT ISBN, title FROM bookInfo WHERE ISBN IN (?)", ISBNs)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+	// mysql用にクエリをリバインド？（っぽい）
+	query = db.Rebind(query)
+
+	//全件取得クエリ messageに結果をバインド
+	err = db.Select(&message, query, args...)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	return c.JSON(http.StatusOK, message)
+}
+
 // GetUserLists ユーザリスト登録
 func GetUserLists(c echo.Context) error {
 
