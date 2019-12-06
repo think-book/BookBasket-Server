@@ -159,6 +159,42 @@ func GetBookMetaInfoForUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, message)
 }
 
+// GetUserLists ユーザリスト登録
+func GetUserLists(c echo.Context) error {
+
+	//sessionを見る
+	sess, _ := session.Get("session", c)
+	var userID int
+	var err error
+
+	//ログインしているか
+	if b := sess.Values["auth"]; b != true {
+		return c.String(http.StatusUnauthorized, "Not Logined")
+	} else {
+		userID, _ = sess.Values["userID"].(int)
+	}
+
+	var user UserInfoForReturn
+	// userIDがデータベースにあるか確認
+	err = db.Get(&user, "SELECT id, userName FROM userInfo WHERE id=?", userID)
+	// ユーザが存在しなければBad request
+	if err != nil {
+		return c.String(http.StatusBadRequest, "User doesn't exist")
+	}
+
+	// userlists（UserInfoForReturn配列） にメタ情報を格納
+	userlists := []UserInfoForReturn{}
+
+	//ユーザ情報獲得クエリ usersに結果をバインド
+	err = db.Select(&userlists, "SELECT id, userName FROM userInfo")
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	return c.JSON(http.StatusOK, userlists)
+
+}
+
 //GetBookProfile 本情報１件取得
 func GetBookProfile(c echo.Context) error {
 	// urlのisbn取得

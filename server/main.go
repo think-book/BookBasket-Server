@@ -31,6 +31,7 @@ func main() {
 
 	// ルーティング
 	e.GET("/books", handler.GetBookMetaInfoForUser)
+	e.GET("/users/lists", handler.GetUserLists)
 	e.GET("/books/all", handler.GetBookMetaInfoAll)
 	e.GET("/books/:ISBN", handler.GetBookProfile)
 	e.GET("/books/:ISBN/threads", handler.GetThreadTitles)
