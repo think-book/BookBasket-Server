@@ -65,7 +65,7 @@ $ docker-compose up --build
 
 `$ docker-compose down -v`
 でデータベース初期化してコンテナ終了
-(-v しないとvolumeがどんどん溜まっていく)
+(-v しないとvolumeがどんどん溜まっていく。VPSは-vいらない)
 
 データベースを初期化しない場合は、
 
@@ -96,10 +96,13 @@ $ docker rm (コンテナ名)
 `{"ISBN":xxx,"title":"~","description":"~"}`
 
 ### スレッドタイトル
-`{"userID":xxx,"title":"~"}`
+`{"title":"~"}`
 
 ### スレッドメッセージ
-`{"userID":xxx,"message":"~"}`
+`{"message":"~"}`
+
+### ユーザ登録
+`{"userName":"~", "password":"~"}`
 
 で登録できます。
 
@@ -145,9 +148,18 @@ ISBNでの取得は、
 `Not Found`
 が返ります。
 
+## GET リクエスト（ユーザリスト）
+- ユーザリストを取得する場合、`/users/lists`にGETリクエストを送信（ログインしている必要あり）
+- 返値：[{"id":xxx, "userName":"..."},...]
+
+## GET リクエスト（他人の本棚）
+- 他人の本棚を見る場合、`/users/:id/books`にGETリクエストを送信（ログイン不要）
+- 返値：[{"ISBN": xxx, "title": "..."},...]
+
+
 ## POSTリクエスト（本情報）
 
-POSTリクエストは、
+POSTリクエスト（ユーザの本棚への登録）は、
 `$ curl -X POST -H "Content-Type: application/json" -d '{"ISBN":xxx, ...}' {ホストのIPアドレス}:8080/books`
 で行えます。
 
@@ -159,15 +171,15 @@ POSTリクエストは、
 `Invalid Post Format`
 が返ります。
 
-もし詳細情報がすでに存在している場合、
-`Book info already exists`
+もしユーザがその本を既に登録している場合、
+`Book has already been registerd`
 が返ります。
 
 
 ## POSTリクエスト（スレッドタイトル）
 
 POSTリクエストは、
-`$ curl -X POST -H "Content-Type: application/json" -d '{"userID":xxx, ...}' {ホストのIPアドレス}:8080/books/:ISBN/threads`
+`$ curl -X POST -H "Content-Type: application/json" -d '{"title":"~"}' {ホストのIPアドレス}:8080/books/:ISBN/threads`
 で行えます。
 
 登録が成功した場合、
@@ -182,7 +194,7 @@ POSTリクエストは、
 `Book doesn't exist`
 が返ります。
 
-もし指定したuserIDのユーザがデータベースに存在しない場合、
+もしログインしたuserIDのユーザがデータベースに存在しない場合、
 `User doesn't exist`
 が返ります。
 
@@ -190,7 +202,7 @@ POSTリクエストは、
 ## POSTリクエスト（スレッドメッセージ）
 
 POSTリクエストは、
-`$ curl -X POST -H "Content-Type: application/json" -d '{"userID":xxx, ...}' {ホストのIPアドレス}:8080/threads/:threadID`
+`$ curl -X POST -H "Content-Type: application/json" -d '{"message":"~"}' {ホストのIPアドレス}:8080/threads/:threadID`
 で行えます。
 
 登録が成功した場合、
@@ -205,6 +217,37 @@ POSTリクエストは、
 `Thread doesn't exist`
 が返ります。
 
-もし指定したuserIDのユーザがデータベースに存在しない場合、
+もしログインしたuserIDのユーザがデータベースに存在しない場合、
 `User doesn't exist`
+が返ります。
+
+## ユーザ登録
+
+POSTリクエストは、
+`$ curl -X POST -H "Content-Type: application/json" -d '{"userName":"~", ...}' {ホストのIPアドレス}/users/registration`
+で行えます。
+
+ユーザ名は大文字小文字の区別なく、他人と重複してはいけません。
+重複すると、
+`User already exists`
+が返ります。
+
+成功すると、
+`{"id":x,"userName":"~"}`
+が返ります。
+
+パスワードはbcryptで暗号化されます。
+
+## ユーザ認証
+
+POSTリクエストは、
+`$ curl -X POST -H "Content-Type: application/json" -d '{"userName":"~", ...}' {ホストのIPアドレス}/users/login`
+で行えます。
+
+失敗すると、
+`Login Failed`
+が返ります。
+
+成功すると、
+`{"id":x,"userName":"~"}`
 が返ります。
