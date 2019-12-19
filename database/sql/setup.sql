@@ -14,7 +14,7 @@ CREATE TABLE bookbasket.bookInfo(
 INSERT INTO bookbasket.bookInfo (title, description, ISBN) VALUES(
     '機械学習入門',
     'ボルツマン機械学習から深層学習まで',
-    '1009784274219986'
+    '9784274219986'
 ),
 (
     'ブロックチェーン 仕組みと理論',
