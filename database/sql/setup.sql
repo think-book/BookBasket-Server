@@ -12,29 +12,35 @@ CREATE TABLE bookbasket.bookInfo(
 );
 
 INSERT INTO bookbasket.bookInfo (title, description, ISBN) VALUES(
-    'cool book',
-    'A super hero beats monsters.',
-    '100'
+    '機械学習入門',
+    'ボルツマン機械学習から深層学習まで',
+    '1009784274219986'
 ),
 (
-    'awesome book',
-    'A text book of go langage.',
-    '200'
+    'ブロックチェーン 仕組みと理論',
+    'サンプルで学ぶFinTechのコア技術',
+    '9784865940404'
+),
+(
+    '入門 Python 3',
+    'プログラミングが初めてという人を対象に書かれた本です。',
+    '9784873117386'
+),
+(
+    'あたらしい人工知能の教科書',
+    '人工知能を利用した開発に必要な基礎知識がわかる！',
+    '9784798145600'
+),
+(
+    'SQL実践入門',
+    '高速でわかりやすいクエリの書き方',
+    '9784774173016'
 );
 
 CREATE TABLE bookbasket.userBookRelation(
     userID INT NOT NULL,
     ISBN BIGINT UNSIGNED NOT NULL,
     PRIMARY KEY(userID, ISBN)
-);
-
-INSERT INTO bookbasket.userBookRelation (userID, ISBN) VALUES(
-    '1',
-    '100'
-),
-(
-    '1',
-    '200'
 );
 
 CREATE TABLE bookbasket.threadMetaInfo(
@@ -44,18 +50,6 @@ CREATE TABLE bookbasket.threadMetaInfo(
     ISBN BIGINT UNSIGNED
 );
 
-INSERT INTO bookbasket.threadMetaInfo (userName, title, ISBN) VALUES(
-    'Alice',
-    "I don't understand p.32 at all.",
-    '100'
-),
-(
-    'Bob',
-    "there is an awful typo on p.55",
-    '100'
-);
-
-
 CREATE TABLE bookbasket.threadMessage(
     id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     userName VARCHAR(50),
@@ -63,37 +57,8 @@ CREATE TABLE bookbasket.threadMessage(
     threadID INT
 );
 
-INSERT INTO bookbasket.threadMessage (userName, message, threadID) VALUES(
-    'Carol',
-    'Me neither.',
-    '1'
-),
-(
-    'Charlie',
-    'I think the author tries to say ...',
-    '1'
-);
-
-
 CREATE TABLE bookbasket.userInfo(
     id INT AUTO_INCREMENT PRIMARY KEY,
     userName VARCHAR(50) NOT NULL,
     password VARCHAR(60)
-);
-
-INSERT INTO bookbasket.userInfo (userName, password) VALUES(
-    'Alice',
-    'pass'
-),
-(
-    'Bob',
-    'word'
-),
-(
-    'Carol',
-    'qwer'
-),
-(
-    'Charlie',
-    'tyui'
 );
