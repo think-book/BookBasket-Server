@@ -43,7 +43,7 @@ type (
 
 	// スレッドメタ情報
 	ThreadMetaInfo struct {
-		ID       int    `json:"id" db:"id"`
+		ID       int64  `json:"id" db:"id"`
 		UserName string `json:"userName" db:"userName"`
 		Title    string `json:"title" db:"title"`
 		ISBN     uint64 `json:"ISBN" db:"ISBN"`
@@ -53,7 +53,7 @@ type (
 	ThreadMessage struct {
 		UserName string `json:"userName" db:"userName"`
 		Message  string `json:"message" db:"message"`
-		ThreadID int    `json:"threadID" db:"threadID"`
+		ThreadID int64  `json:"threadID" db:"threadID"`
 	}
 
 	// ユーザ情報（登録用）
@@ -429,19 +429,15 @@ func PostThreadTitle(c echo.Context) error {
 	info.ISBN = uint64(isbn)
 
 	// 一件挿入用クエリ
-	_, err = db.Exec("INSERT INTO threadMetaInfo (userName, title, ISBN) VALUES(?,?,?)", user.UserName, info.Title, info.ISBN)
+	result, err := db.Exec("INSERT INTO threadMetaInfo (userName, title, ISBN) VALUES(?,?,?)", user.UserName, info.Title, info.ISBN)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 
-	// 挿入したレコードのid取得
-	var id int
-	err = db.Get(&id, "SELECT LAST_INSERT_ID()")
+	info.ID, err = result.LastInsertId()
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
-
-	info.ID = id
 	info.UserName = user.UserName
 
 	return c.JSON(http.StatusOK, info)
@@ -496,7 +492,7 @@ func PostThreadMessage(c echo.Context) error {
 	}
 
 	// メッセージのthreadID設定
-	info.ThreadID = threadID
+	info.ThreadID = int64(threadID)
 	info.UserName = user.UserName
 
 	// 一件挿入用クエリ
